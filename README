@@ -1,0 +1,112 @@
+#########################################################################
+# Bloch-McConnell 2-/3-state Fitting Program v1.25
+#  Beta version.
+#  Isaac Kimsey 02-11-2016
+#
+# External Dependencies: numpy, matplotlib, scipy, leastsqbound, uncertainties
+#########################################################################
+
+######################
+##   Installation   ##
+######################
+
+Python dependencies:
+- numpy
+- matplotlib
+- scipy
+- pandas
+- uncertainties
+
+Mac OSX
+*************
+1. Install 'pip'
+From terminal:
+> sudo easy_install pip
+
+2. Install Python dependencies
+> sudo pip install numpy matplotlib scipy pandas uncertainties
+
+If package(s) are already installed, make sure each is up-to-date:
+> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties
+
+Linux (Debian-based)
+*************
+1. Install 'pip'
+From terminal:
+> sudo apt-get install pip
+
+2. Install Python dependencies
+> sudo pip install numpy matplotlib scipy pandas uncertainties
+
+If package(s) are already installed, make sure each is up-to-date:
+> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties
+
+######################
+##   Testing Fits   ##
+######################
+From directory of BMNS enter the following in the terminal
+> python BMNS.py -fit Example/1-run1_Model1.txt.txt Example/ TestFit/
+
+If successful, you should generate a 'TestFit' directory in the BMNS folder with the following files and folders:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Copies/
+-- copy-hpTT-GTG_G6-C1p.csv
+-- copy-input.txt
+Local/
+---- Matrices/
+------- LocalStats_Correlation_hpTT-GTG_G6-C1p_1.csv
+------- LocalStats_Covariance_hpTT-GTG_G6-C1p_1.csv
+------- LocalStats_Jacobian_hpTT-GTG_G6-C1p_1.csv
+------- LocalStats_Residuals_hpTT-GTG_G6-C1p_1.csv
+------- LocalStats_StdErr_hpTT-GTG_G6-C1p_1.csv
+-- Data_hpTT-GTG_G6-C1p_1.csv
+-- R1rho_Figs_hpTT-GTG_G6-C1p_1.pdf
+-- R1pR2eff_Figs_hpTT-GTG_G6-C1p_1.pdf
+-- R2eff_Figs_hpTT-GTG_G6-C1p_1.pdf
+
+- 2-state_Formatted_LocalFits_hpTT-GTG_G6-C1p.csv
+- LocalFits_hpTT-GTG_G6-C1p.csv
+- LocalFits_hpTT-GTG_G6-C1p_thermo.csv (* after you run the -thermo command)
+- LocalStats_hpTT-GTG_G6-C1p.csv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#########################
+##  Creating an Alias  ##
+#########################
+Highly suggest just running the BMNS fitting program from one localized directory and not copying it multiple times
+to each new data folder you are working with.
+
+Mac OSX
+*************
+> vim ~/.bash_profile
+
+Insert the following line near the bottom (editing the path for your directory)
+alias bm='python /path/to/BMNS/BMNS.py'
+
+> source ~/.bash_profile
+
+Linux (bash)
+*************
+> vim ~/.bashrc
+
+Insert the following line near the bottom (editing the path for your directory)
+alias bm='python /path/to/BMNS/BMNS.py'
+
+> source ~/.bashrc
+
+Linux (C-shell)
+*************
+> vim ~/.cshrc
+
+Insert the following line near the bottom (editing the path for your directory)
+alias bm 'python /path/to/BMNS/BMNS.py'
+
+> source ~/.cshrc
+
+#########################
+##  BMNS Commands      ##
+#########################
+Now to run a fit from any directory just use:
+> bm -fit [input file] [data directory] [output directory]
+> bm -thermo [BM fit.csv] [temperature, C or K]
+> bm -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]

@@ -1,0 +1,11 @@
+Fit #1
+hpTG-GTG_T5-N3 Pars,Fit Value,Error
+pB (%),0.111,0.005
+pC (%),0.049,0.006
+dwB (ppm),19.27,0.41
+dwC (ppm),54.53,3.80
+kexAB (s^-1),2830,301
+kexAC (s^-1),16286,2144
+R1 (s^-1),2.40,0.03
+R2 (s^-1),4.98,0.58
+Red. Chi-sq,0.89
