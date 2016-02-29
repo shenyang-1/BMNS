@@ -1,5 +1,5 @@
 Bloch-McConnell Numerical Solution (BMNS)
-Version 1.25 (Feb 11 2016)
+Feb 29 2016
 ************
 !!! Note: Scipy >= v0.17 must be installed !!! (use: sudo pip install --upgrade scipy)
 !!! Note: Pandas must be installed !!! (use: sudo pip install pandas)

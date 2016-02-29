@@ -1,21 +1,14 @@
 #########################################################################
-# Bloch-McConnell 2-/3-state Fitting Program v1.25
-#  Beta version.
-#  Isaac Kimsey 02-11-2016
+# Bloch-McConnell 2-/3-state Fitting/Simulation Program
+#  Isaac Kimsey
 #
-# External Dependencies: numpy, matplotlib, scipy, leastsqbound, uncertainties
+# External Dependencies: numpy, matplotlib, scipy, leastsqbound, least_squares
+#                        pandas, uncertainties
 #########################################################################
 
 ######################
 ##   Installation   ##
 ######################
-
-Python dependencies:
-- numpy
-- matplotlib
-- scipy
-- pandas
-- uncertainties
 
 Mac OSX
 *************
@@ -24,10 +17,10 @@ From terminal:
 > sudo easy_install pip
 
 2. Install Python dependencies
-> sudo pip install numpy matplotlib scipy pandas uncertainties
+> sudo pip install numpy matplotlib scipy pandas uncertainties leastsqbound
 
 If package(s) are already installed, make sure each is up-to-date:
-> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties
+> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties leastsqbound
 
 Linux (Debian-based)
 *************
@@ -36,10 +29,10 @@ From terminal:
 > sudo apt-get install pip
 
 2. Install Python dependencies
-> sudo pip install numpy matplotlib scipy pandas uncertainties
+> sudo pip install numpy matplotlib scipy pandas uncertainties leastsqbound
 
 If package(s) are already installed, make sure each is up-to-date:
-> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties
+> sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties leastsqbound
 
 ######################
 ##   Testing Fits   ##
