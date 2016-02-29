@@ -13,6 +13,7 @@ import subprocess
 ### Local BMNS Libraries ###
 import BMNS_FitData as fd
 import BMNS_SimR1p as sim
+import BMNS_SimFits as simf
 import BMNS_Errors as bme
 import BMNS_AMPGO as ampgo  # Global fitting
 import BMNS_MathFuncs as mf
@@ -462,15 +463,31 @@ def Main():
       print "----- Cannot Run Fit Because of Errors -----"
       print retMessage
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Brute Params Plots
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #  arg1 '-bruteplot'
-  #  arg2 Fit CSV file from brute force fit
-  # Generates 1D and 2D chi-min plots
-  #---------------------------------------------------
-  elif argc == 3 and sys.argv[1].lower() == "-bruteplot" and os.path.isfile(os.path.join(curDir, sys.argv[2])):
-    pass
+  #########################################################################
+  # Bloch-McConnell 2-/3-state R1rho Simulation
+  #########################################################################
+  #  arg1 '-sim'
+  #  arg2 Parameter Text File
+  #  arg3 Parent directory of R1rho.csv data files
+  #        corresponding to names in pars file.
+  #       - Each csv is ordered:
+  #          Col 1: Offset (corrected, Hz)
+  #          Col 2: SLP (Hz)
+  #          Col 3: R1rho (s-1)
+  #          Col 4: R1rho err (s-1)[optional]
+  #      If first row is text, will delete first row
+  #       and first column, and shift col 2-5 to
+  #       col 1-4, as above.
+  #  arg4 Output directory for fit data [Optional]
+  #         If not given, will generate folder in
+  #         parent data directory.
+  #-----------------------------------------------------------------------#
+  elif "sim" in sys.argv[1].lower():
+    # Create simulation class object
+    simf = simf.SimFit()
+    # Clean and handle input args
+    simf.PreSim(sys.argv)
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Tab to CSV splitter
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

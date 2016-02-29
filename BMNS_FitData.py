@@ -257,7 +257,7 @@ class GraphFit:
       ax[1,1].set_ylabel(r'$R_2+R_{ex}\,\mathrm{ Residual}$', size=16)
     fig.set_tight_layout(True)
     # Write out figure
-    fig.savefig(figPath)
+    fig.savefig(figPath, transparent=True)
     # Clear figure
     fig.clf()
     # Close plot
@@ -294,7 +294,7 @@ class GraphFit:
 
     fig2.set_tight_layout(True)
     # Write out fig2ure
-    fig2.savefig(figR2effPath)
+    fig2.savefig(figR2effPath, transparent=True)
     # Clear fig2ure
     fig2.clf()
     # Close plot
@@ -331,7 +331,7 @@ class GraphFit:
 
     fig2.set_tight_layout(True)
     # Write out fig2ure
-    fig2.savefig(figR1rhoPath)
+    fig2.savefig(figR1rhoPath, transparent=True)
     # Clear fig2ure
     fig2.clf()
     # Close plot
@@ -389,7 +389,7 @@ class GraphFit:
 
       fig2.set_tight_layout(True)
       # Write out fig2ure
-      fig2.savefig(figOnResPath)
+      fig2.savefig(figOnResPath, transparent=True)
       # Clear fig2ure
       fig2.clf()
       # Close plot
