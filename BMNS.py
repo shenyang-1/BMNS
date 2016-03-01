@@ -484,9 +484,9 @@ def Main():
   #-----------------------------------------------------------------------#
   elif "sim" in sys.argv[1].lower():
     # Create simulation class object
-    simf = simf.SimFit()
+    sfo = simf.SimFit()
     # Clean and handle input args
-    simf.PreSim(sys.argv)
+    sfo.PreSim(sys.argv)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Tab to CSV splitter

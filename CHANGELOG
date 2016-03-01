@@ -4,6 +4,7 @@ Feb 29 2016
 !!! Note: Scipy >= v0.17 must be installed !!! (use: sudo pip install --upgrade scipy)
 !!! Note: Pandas must be installed !!! (use: sudo pip install pandas)
 
+- Output file replaced 'FuncEvals' with 'AlignMag' parameter
 - Different fit models of the same data can be compared statistically using the command:
 	>BMNS -compare [List of model CSVs]
 - Changed local fitting function from "Least Squares Bound", to Scipy's new "Least Squares" function that has better bounding conditions.

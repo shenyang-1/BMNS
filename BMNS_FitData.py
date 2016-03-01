@@ -1350,7 +1350,7 @@ class Global():
   def WriteFits(self, outPath, ob, fitnum, flag):
     
     # Append additional keys to gVars
-    outKeys = ["RedChiSq", "lf", "FuncEvals"] + self.gVar + self.gErr
+    outKeys = ["RedChiSq", "lf", "AlignMag"] + self.gVar + self.gErr
 
     # Generate output path names for writing out .csv files
     gPath = os.path.join(outPath, "GlobalFits_%s.csv" % ob.name)
@@ -1533,7 +1533,7 @@ class Global():
       # Assign number of function evals
       ob.gRCS, ob.gFE = redChiSq, funcEvals
       ob.globalFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.globalFits[loopNum].update({'RedChiSq' : redChiSq, 'FuncEvals' : funcEvals, "lf" : ob.lf})
+      ob.globalFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
       if errPars is None:
         # Add error names, but for now give NO ERROR
         ob.globalFits[loopNum].update({x:0.0 for x in self.gErr})
@@ -1545,7 +1545,7 @@ class Global():
       # Assign number of function evals
       ob.pRCS, ob.pFE = redChiSq, funcEvals
       ob.polishedFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.polishedFits[loopNum].update({'RedChiSq' : redChiSq, 'FuncEvals' : funcEvals, "lf" : ob.lf})
+      ob.polishedFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
       if errPars is None:
         # Add error names, but for now give NO ERROR
         ob.polishedFits[loopNum].update({x:0.0 for x in self.gErr})
@@ -1557,7 +1557,7 @@ class Global():
       # Assign number of function evals
       ob.lRCS, ob.lFE = redChiSq, funcEvals
       ob.localFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.localFits[loopNum].update({'RedChiSq' : redChiSq, 'FuncEvals' : funcEvals, "lf" : ob.lf})
+      ob.localFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
       if errPars is None:
         # Add error names, but for now give NO ERROR
         ob.localFits[loopNum].update({x:0.0 for x in self.gErr})
