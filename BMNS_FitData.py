@@ -650,9 +650,6 @@ class Parse:
     # Check to see if file exists. This is just a double-check, should have been caught already.
     #  If it does, unpack it.
     if os.path.isfile(dPath):
-      # FILE = open(dPath, "rU")
-      # tData = array([x.strip().split() for x in FILE])
-      # FILE.close()
       tData = self.CsvTabData(dPath, fileExt)
       # First check to see if first column is a alphanumeric title
       try:

@@ -22,6 +22,7 @@ from numpy import pi
 from numpy import shape, sin, std, sqrt
 from numpy import tan
 from numpy import vstack
+from numpy import zeros
 ### Numpy sub imports ###
 from numpy.linalg import eig, inv, norm
 from numpy.random import normal
@@ -31,6 +32,8 @@ from scipy.optimize import curve_fit
 ### Uncertainties imports for error propagation
 from uncertainties import umath
 from uncertainties import ufloat
+
+import matplotlib.pyplot as plt
 
 #########################################################################
 # Monte-Carlo Error Estimator
@@ -421,7 +424,7 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
     tmax = 1./kR1p
   # Else, just use maximum in time delay (might be non-optimal)
   else:
-    tmax = max(time)
+    tmax = time.max()
 
   # Unpack Parameters
   pB,pC,dwB,dwC,kexAB,kexAC,kexBC,R1,R1b,R1c,R2,R2b,R2c = Params
@@ -529,6 +532,191 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
       return array([R1p, R2eff])
 
 #########################################################################
+# Fitting function BM Simulation Routine (using 3-state matrix)
+#   Params = Dictionary of parameter names and associate values
+#            must have: pb, pc, kexab, kexac, kexbc, r1, r1b, r1c
+#                       r2, r2b, r2c, dwb, dwc, lf, alignmag keys
+#   w1 = SLP (given in Hz, converted to rad/s for calcs later on)
+#   wrf = Offset from carrier
+#         (given in "corrected" Hz, converted to rad/s later for calcs)
+#   time = vector of time increments (sec) from Tmin-Tmax
+#   err = error percentage to noise corrupt magnetization by
+# Returns:
+# o R1rho array
+# -- 0 R1rho
+# -- 1 R2eff
+# -- 2 Preexponential
+# o Mag Sim array
+# -- 0  Peff : effective mag proj along avg effective
+# -- 1  PeffA : mag proj along A-state effective
+# -- 2  PeffB : mag proj along B-state effective
+# -- 3  PeffC : mag proj along C-state effective
+# -- 4  Mxa : x-comp of A-state at time t
+# -- 5  Mya : y-comp of A-state at time t
+# -- 6  Mza : z-comp of A-state at time t
+# -- 7  Mxb : x-comp of B-state at time t
+# -- 8  Myb : y-comp of B-state at time t
+# -- 9  Mzb : z-comp of B-state at time t
+# -- 10 Mxc : x-comp of C-state at time t
+# -- 11 Myc : y-comp of C-state at time t
+# -- 12 Mzc : z-comp of C-state at time t
+# o Eigenvalue array
+# -- 0 w1-ax : eigenval 1 of state A, x-comp
+# -- 1 w2-ay : eigenval 2 of state A, y-comp
+# -- 2 w3-az : eigenval 3 of state A, z-comp
+# -- 3 w4-bx : eigenval 1 of state B, x-comp
+# -- 4 w5-by : eigenval 2 of state B, y-comp
+# -- 5 w6-bz : eigenval 3 of state B, z-comp
+# -- 6 w7-cx : eigenval 1 of state C, x-comp
+# -- 7 w8-cy : eigenval 2 of state C, y-comp
+# -- 8 w9-cz : eigenval 3 of state C, z-comp
+#########################################################################
+def BMSim(ParD, wrf, w1, time, dec_err=0.0, r1p_err=0.0):
+  # Numpy array to store mag vectors
+  magVecs = zeros(13)
+  # Numpy array to store eigenvalues
+  eigVals = zeros(9)
+  # Decay sim flag - 2pt or monoexp fit
+  decFlag = False
+  # Check to see if vdlist is defined
+  if len(time) > 2:
+    decFlag = True
+    kR1p = 2.
+    tmax = 1./kR1p
+  else:
+    kR1p = 2.
+    # Estimate maximum Trelax needed to efficiently calculate a 2-point exponential decay
+    #  Use known R1rho value if it is given, as 1/R1p will give int decay to ~0.36  
+    if kR1p is not None:
+      tmax = 1./kR1p
+
+  # Unpack Parameters
+  pB,pC,dwB,dwC = ParD['pb'], ParD['pc'], ParD['dwb'], ParD['dwc']
+  kexAB,kexAC,kexBC = ParD['kexab'], ParD['kexac'], ParD['kexbc']
+  R1,R1b,R1c = ParD['r1'], ParD['r1b'], ParD['r1c']
+  R2,R2b,R2c = ParD['r2'], ParD['r2b'], ParD['r2c']
+  lf, AlignMag = ParD['lf'], ParD['alignmag']
+  pA = 1. - (pB + pC)
+
+  ################################
+  ##### Pre-run Calculations #####
+  ################################
+  # Convert w1, wrf to rad/sec from Hz
+  w1 = w1 * 2. * pi
+  wrf = wrf * 2. * pi
+  #Convert dw from ppm to rad/s
+  dwB = dwB * lf * 2. * pi # dw(ppm) * base-freq (eg 151 MHz, but just 151) * 2PI, gives rad/s
+  dwC = dwC * lf * 2. * pi
+  #Define forward/backward exchange rates
+  k12 = kexAB * pB / (pB + pA)
+  k21 = kexAB * pA / (pB + pA)
+  k13 = kexAC * pC / (pC + pA)
+  k31 = kexAC * pA / (pC + pA)
+  if kexBC != 0.:
+    k23 = kexBC * pC / (pB + pC)
+    k32 = kexBC * pB / (pB + pC)
+  else:
+    k23 = 0.
+    k32 = 0.
+
+  # Calculate pertinent frequency offsets/etc for alignment and projection
+  lOmegaA, lOmegaB, lOmegaC, uOmega1, uOmega2, uOmega3, uOmegaAvg,\
+  delta1, delta2, delta3, deltaAvg, theta1, theta2, theta3, thetaAvg = \
+                          AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
+      
+  #Calculate initial magnetization
+  Ma = pA*lOmegaA # ES1
+  Mb = pB*lOmegaB # GS
+  Mc = pC*lOmegaC # ES2
+
+  # Magnetization matrix
+  Ms = MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
+                 w1, R1, R2, R1b, R1c, R2b, R2c)
+
+  # Initial magnetization of GS (Mb), ES1 (Ma), ES2 (Mc)
+  M0 = array([Ma[0],Mb[0],Mc[0],Ma[1],Mb[1],Mc[1],Ma[2],Mb[2],Mc[2]], float64)
+
+  #################################################################
+  #### Calculate Evolution of Magnetization for Fitting Func ######
+  #################################################################
+
+  if decFlag == True:
+    # Calculate evolving magnetization at a given time increment
+    # Returns array of projected magnetizations and indv components of mag
+    # Col0 = Peff - mag projected along average
+    # Col1 = Peff_err, if any
+    # Col2,3,4 = PeffA,B,C - Projected along respective states
+    # Col5,6,7 = Mxa, Mxb, Mxc - x-comps of indv states
+    # Col8,9,10 = Mya, Myb, Myc
+    # Col11,12,13 = Mza, Mzb, Mzc
+    t0 = SimMagVecs(time.min(),M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) # Mag at min time
+    magVecs = asarray([SimMagVecs(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf,
+      error=t0[0]*dec_err) for x in time])
+
+    # Calculate eigenvalues for export
+    eigVals = matrix_exponential(Ms, w1, wrf, 0.0, EigVal=True)[1]
+
+    # If mag vecs are not nan
+    if not isnan(magVecs.sum()):
+      if dec_err != 0.0:
+        popt, pcov = curve_fit(ExpDecay, time, magVecs[:,0], (1., R1), sigma=magVecs[:,1])
+      else:
+        popt, pcov = curve_fit(ExpDecay, time, magVecs[:,0], (1., R1))
+      R1p = popt[1]
+      preExp = popt[0]
+      fig = plt.figure()
+      plt.errorbar(time, magVecs[:,0], yerr=magVecs[:,1], fmt='o')
+      plt.plot(time, ExpDecay(time, *popt), c='red')
+      plt.show()
+      sys.exit()
+    else:
+      R1p = 0.0
+      preExp = 1.
+  else:
+    # Calculate effective magnetization at Tmax and Tmin, respectively
+    #  Returns floats corresponding to magnetization projected back along Meff at time T   
+    magMin,magMax = AltCalcMagT(tmax,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf),\
+                    AltCalcMagT(time[0],M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf)
+
+    # Check to make sure magnetization at Tmax is not <= 0, would give errorneous result
+    if magMin <= 0.:
+      # Project magnetization along average state in Jameson way
+      #   Note: this PeffVec + Fit Exp gives nearly identical
+      #         values to Flag 2 way
+      PeffVec = asarray([AltCalcMagT(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) for x in time])
+      popt, pcov = curve_fit(ExpDecay,
+                             time,
+                             PeffVec,
+                             (1., 5.))
+      R1p = popt[1]
+
+    ## R1rho Calc Opt #1
+    # Kay method (Korhznev, JACS, 2004) Solve with 2-pts
+    # R1rho = -1/Tmax*ln(I1/I0), where I1 is Peff at Tmax
+    #   NOTE: If use this, don't calc Peff above
+    # Kay Method with Jameson Alt. Calc. Mag. T
+    else:
+      # If magnetization at Tmax is < 0,
+      # Means odd exponential decay
+      # In this case, walk backwards along time vector
+      #  until the time where magMin(t) > 0
+      #  Then solve for R1rho with new min magnetization
+      R1p = -1./tmax*log(magMin/magMax)
+
+  # # Faster alternative, assumes mag at T=0 is 0.0!
+  # R1p = -1./time[-1]*log(AltCalcMagT(time[-1],M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf))
+
+  if isnan(R1p) == True:
+    return array([0., 0., 1.]), magVecs, eigVals
+  # If R1p is not NaN
+  else:
+    # Calculate R2eff - take on-res in to account
+    # If on-resonance, thetaAvg = pi/2
+    if deltaAvg == 0.: thetaAvg = pi/2.
+    R2eff = (R1p/sin(thetaAvg)**2.) - (R1/(tan(thetaAvg)**2.))
+    return array([R1p, R2eff, preExp]), magVecs, eigVals
+
+#########################################################################
 # Normalize a vector with lambda function #
 #########################################################################
 def normalize(vec):
@@ -604,7 +792,7 @@ def MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
 #   where e^D is the diagonal matrix whose ith diag elem is e^di
 # Code modified from 'nmr-relax' program. http://www.nmr-relax.com/
 #########################################################################
-def matrix_exponential(A,w1,wrf,t):
+def matrix_exponential(A, w1, wrf, t, EigVal=False):
     """Calculate the exact matrix exponential using the eigenvalue decomposition approach.
 
     @param A:   The square matrix to calculate the matrix exponential of.
@@ -633,8 +821,10 @@ def matrix_exponential(A,w1,wrf,t):
     #  e^A = V.e^D.V^-1
     #   where D is the diag matrix of the eigenvalues of A
     eA = dot(dot(V, diag(exp(W))), inv(V))
-
-    return eA.real
+    if EigVal == False:
+      return eA.real
+    else:
+      return eA.real, W
 
 #########################################################################
 # Used to fit effective bulk magnetization vector dot product
@@ -656,6 +846,44 @@ def CalcMagT(time_incr, M0, Ms):
   # Mc = dot(M0[6:],preMag[6:])
   magatT = dot(M0, dot((matrix_exponential(Ms*time_incr,w1,wrf)), M0))
   return(magatT)
+
+def SimMagVecs(dt,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf,error=0.0):
+  # Sim mag at time increment
+  M = dot((matrix_exponential(Ms*dt, w1, wrf, dt)), M0)
+  Mxa = M[0]
+  Mxb = M[1]
+  Mxc = M[2]
+  Mya = M[3]
+  Myb = M[4]
+  Myc = M[5]
+  Mza = M[6]
+  Mzb = M[7]
+  Mzc = M[8]
+  # Project effective mag along indv effective lOmegas
+  PeffA = dot(vstack((Mxa,Mya,Mza)).T, lOmegaA)[0]
+  PeffB = dot(vstack((Mxb,Myb,Mzb)).T, lOmegaB)[0]
+  PeffC = dot(vstack((Mxc,Myc,Mzc)).T, lOmegaC)[0]
+  # Project mag along average effective
+  Peff = PeffA + PeffB + PeffC
+
+  ## Error corruption of Peff ##
+  if error != 0.0:
+    # MC error number
+    mcnum = 500
+    # Get normal distribution given error scaled to max int value
+    tp = normal(Peff, error, size=mcnum)
+    # Fit normal distribution
+    tp = normDist.fit(tp)
+    Peff = tp[0] # mu
+    Peff_err = tp[1] # sigma
+
+  else:
+    Peff_err = 0.0
+
+  return array([Peff, Peff_err, PeffA, PeffB, PeffC,
+                   Mxa, Mya, Mza,
+                   Mxb, Myb, Mzb,
+                   Mxc, Myc, Mzc])
 
 #########################################################################
 # Alternative evolution of magnetization of Ms starting from M0 with increment of time
@@ -682,4 +910,5 @@ def AltCalcMagT(time_incr,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf):
           dot(vstack((Mxb,Myb,Mzb)).T, lOmegaB)
           +
           dot(vstack((Mxc,Myc,Mzc)).T, lOmegaC))
+
   return Peff[0]

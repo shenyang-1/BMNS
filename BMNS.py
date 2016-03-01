@@ -487,7 +487,10 @@ def Main():
     sfo = simf.SimFit()
     # Clean and handle input args
     sfo.PreSim(sys.argv)
-
+    # Simulate R1rho values
+    sfo.simFit()
+    # Plot R1rho values
+    sfo.plotR1p(curDir)
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Tab to CSV splitter
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

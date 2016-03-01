@@ -3,12 +3,53 @@ import numpy as np
 import pandas as pd
 import itertools as it
 import BMNS_Errors as bme
+import BMNS_SimR1p as sim
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+import matplotlib as mpl
+
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
 #########################################################################
 class SimFit:
   def __init__(self):
-    self.Params = ["Name","lf","pB","pC","dwB","dwC","kexAB","kexAC","kexBC","R1","R2","R1b","R1c","R2b","R2c"]
+    # o R1rho array
+    # -- 0 Offset (Hz)
+    # -- 1 SLP (Hz)
+    # -- 2 Preexp
+    # -- 3 R1rho
+    # -- 4 R2eff
+    # -- 5 Preexponential
+    # -- 6 R1rho error
+    # -- 7 R2eff error
+    self.R1pV = []
+    # o Mag Sim array
+    # -- 0  Peff : effective mag proj along avg effective
+    # -- 1  PeffA : mag proj along A-state effective
+    # -- 2  PeffB : mag proj along B-state effective
+    # -- 3  PeffC : mag proj along C-state effective
+    # -- 4  Mxa : x-comp of A-state at time t
+    # -- 5  Mya : y-comp of A-state at time t
+    # -- 6  Mza : z-comp of A-state at time t
+    # -- 7  Mxb : x-comp of B-state at time t
+    # -- 8  Myb : y-comp of B-state at time t
+    # -- 9  Mzb : z-comp of B-state at time t
+    # -- 10 Mxc : x-comp of C-state at time t
+    # -- 11 Myc : y-comp of C-state at time t
+    # -- 12 Mzc : z-comp of C-state at time t
+    self.magVecs = []
+    # o Eigenvalue array
+    # -- 0 w1-ax : eigenval 1 of state A, x-comp
+    # -- 1 w2-ay : eigenval 2 of state A, y-comp
+    # -- 2 w3-az : eigenval 3 of state A, z-comp
+    # -- 3 w4-bx : eigenval 1 of state B, x-comp
+    # -- 4 w5-by : eigenval 2 of state B, y-comp
+    # -- 5 w6-bz : eigenval 3 of state B, z-comp
+    # -- 6 w7-cx : eigenval 1 of state C, x-comp
+    # -- 7 w8-cy : eigenval 2 of state C, y-comp
+    # -- 8 w9-cz : eigenval 3 of state C, z-comp
+    self.eigVals = []
+    # Current directory
     self.curDir = os.getcwd()
     # -- Simulation SLPs and Offsets numpy array -- #
     # Col0 = Offsets
@@ -16,12 +57,11 @@ class SimFit:
     self.sloff = None
     self.slon = None
     self.slonoff = None
-    self.r1perrpct = 0.0
+    self.r1perr = 0.0 # Noise corruption pct for R1p values
 
     # -- Simulation Decaying Intensity values -- #
-    self.t0, self.tmax = None, None
-    self.vdlist = None
-    self.decerr = 0.0
+    self.vdlist = np.linspace(0.0, 0.25, 51)
+    self.decerr = 0.0 # Noise corruption pct for intensities
 
     # -- Plotting variables and their attributes -- #
     self.pltvar = {
@@ -34,35 +74,125 @@ class SimFit:
       "r2eff_y" : [None, None], # Lower, upper limits of y-dimension R2eff
       "on_x" : [None, None], # Lower, upper limits of x-dimension OnRes
       "on_y" : [None, None], # Lower, upper limits of y-dimension OnRes
+      "size" : (None, None), # Size of plots
       "axis_fs" : [16, 16], # Plots axes font size
       "label_fs" : [18, 18] # Label axes font size
       }
     # -- BM Parameter variables and their values -- #
     self.fitpars = {
-      "lf" : None, # MHz
+      "lf" : 0.0, # MHz
       "alignmag" : "auto", # Mag alignment
-      "te" : None, # Kelvin
-      "pa" : None, # Probability
-      "pb" : None, # Probability
-      "pc" : None, # Probability
-      "dwb" : None, # ppm
-      "dwc" : None, # ppm
-      "kexab" : None,
-      "kexac" : None,
-      "kexbc" : None,
-      "k12" : None,
-      "k21" : None,
-      "k13" : None,
-      "k31" : None,
-      "k23" : None,
-      "k32" : None,
-      "r1" : None,
-      "r2" : None,
-      "r1b" : None,
-      "r2b" : None,
-      "r1c" : None,
-      "r2c" : None
+      "te" : 0.0, # Kelvin
+      "pa" : 0.0, # Probability
+      "pb" : 0.0, # Probability
+      "pc" : 0.0, # Probability
+      "dwb" : 0.0, # ppm
+      "dwc" : 0.0, # ppm
+      "kexab" : 0.0,
+      "kexac" : 0.0,
+      "kexbc" : 0.0,
+      "k12" : 0.0,
+      "k21" : 0.0,
+      "k13" : 0.0,
+      "k31" : 0.0,
+      "k23" : 0.0,
+      "k32" : 0.0,
+      "r1" : 0.0,
+      "r2" : 0.0,
+      "r1b" : 0.0,
+      "r2b" : 0.0,
+      "r1c" : 0.0,
+      "r2c" : 0.0
     }
+
+  #########################################################################
+  # simFit - Simulates R1rho values at self-given SLPs/offsets using
+  #          self-given parameters
+  #########################################################################
+  def simFit(self):
+    # Simulate R1p, R2eff, vectors, eigenvalues, etc at different SLP offsets
+    for of, sl in zip(self.slonoff[:,0], self.slonoff[:,1]):
+      a, b, c = sim.BMSim(self.fitpars, -of, sl, self.vdlist, self.decerr, self.r1perr)
+      self.R1pV.append(a)
+      self.magVecs.append(b)
+      self.eigVals.append(c)
+    # Convert all lists to numpy arrays
+    self.R1pV = np.asarray(self.R1pV)
+    self.R1pV = np.append(self.slonoff, self.R1pV, axis=1)
+    self.magVecs = np.asarray(self.magVecs)
+    self.eigVals = np.asarray(self.eigVals)
+
+  #########################################################################
+  # plotR1p - Plots R1rho values
+  #########################################################################
+  def plotR1p(self, figp):
+    # Find unique SLPs for on/off-res
+    uoffslp = sorted(list(set(self.sloff[:,1])))
+    uonslp = sorted(list(set(self.slon[:,1])))
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.sans-serif'] = 'arial'
+    # Remove onres values from self.R1pV array
+    offv = self.R1pV[self.R1pV[:,0] != 0.]
+    # Split (N, 5) array in to a (M, N, 5) array, where
+    #  M = unique offsets
+    offv = np.array([offv[offv[:,1] == x] for x in uoffslp])
+    ##### Start decorating plot #####
+    # -- Define figure -- #
+    fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
+                     dpi=60)
+    # -- Define Colormap -- #
+    colormap = plt.cm.jet
+    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, offv.shape[0])])
+
+    # -- Start plotting -- #
+    for n in offv:
+      if self.pltvar['plot'] == "symbol":
+        plt.plot(n[:,0], n[:,2], self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+      elif self.pltvar['plot'] == "line":
+        plt.plot(n[:,0], n[:,2], self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], label=int(n[2][1]))
+      elif self.pltvar['plot'] == "both":
+        plot = plt.plot(n[:,0], n[:,2], self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+        plt.plot(n[:,0], n[:,2], self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+    ##### Start decorating plot #####
+    # -- Set a title -- #
+    plt.title(r'$R_{1\rho}$', size=18)
+    # -- Set legends -- #
+    legend = plt.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
+    plt.setp(legend.get_title(), fontsize=self.pltvar['axis_fs'][1])
+    # -- Set axes labels -- #
+    plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
+    plt.ylabel(r'$R_{1\rho}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
+    # -- Set axes font sizes -- #
+    rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+    # -- Set X-axes limits -- #
+    if self.pltvar['r1p_x'][0] is None:
+      xmin = self.R1pV[:,0].min() * 1.05
+    else:
+      xmin = self.pltvar['r1p_x'][0]
+    if self.pltvar['r1p_x'][1] is None:
+      xmax = self.R1pV[:,0].max() * 1.05
+    else:
+      xmax = self.pltvar['r1p_x'][1]    
+    plt.xlim(xmin, xmax)
+    # -- Set Y-axes limits -- #
+    if self.pltvar['r1p_y'][0] is None:
+      ymin = 0.0
+    else:
+      ymin = self.pltvar['r1p_y'][0]
+    if self.pltvar['r1p_y'][1] is None:
+      ymax = self.R1pV[:,2].max() * 1.05
+    else:
+      ymax = self.pltvar['r1p_y'][1]    
+    plt.ylim(ymin, ymax)
+    figp = os.path.join(figp, "R1rho.pdf")
+    plt.savefig(figp, transparent=True)
+    plt.close(fig)
+    plt.clf()
+
   #########################################################################
   # PreSim - Reads argument command line and checks for all required
   #          parameters and maps them to class values
@@ -121,14 +251,12 @@ class SimFit:
   #   - Assigns decay times and errors to self values
   #########################################################################
   def prDecay(self, pdeb):
-    readFlag = False
     # Loop over monoexponential decay block
     for i in pdeb:
       # Check for decay vdlist
       if i[0].lower() == "read":
-        readFlag = True
         # If read flag is defined as a value as non-false
-        if len(i) >= 2 and i[1].lower() != "false":
+        if len(i) >= 2:
           readPath = os.path.join(self.curDir, i[1])
           # Check to make sure decay text file, if not exit program.
           if not os.path.isfile(readPath):
@@ -138,6 +266,21 @@ class SimFit:
             dec = np.genfromtxt(readPath, dtype=float)
             # Strip nan values
             self.vdlist = dec[~np.isnan(dec)]
+      # Get error percentage for noise corruption of decay
+      elif i[0].lower() == "error" and len(i) == 2:
+        try:
+          self.decerr = float(i[1])
+        except ValueError:
+          bme.HandleErrors(True, "\nNo error percentage defined for decay sim\n")
+      # Generate vdlist from lower/upper bounds
+      elif i[0].lower() == "vdlist":
+        if len(i) == 4:
+          # tdecp = self.checkNums(i[1:4])
+          minv, maxv, numv = self.checkNums(i[1:4])
+          if minv > maxv: minv, maxv = maxv, minv
+          # Generate/add to vdlist
+          tvd = np.linspace(minv, maxv, numv)
+          self.vdlist = np.append(self.vdlist, tvd)
 
   #########################################################################
   # prParInp - Parse BM parameters input block from raw input and parses it
@@ -202,7 +345,8 @@ class SimFit:
         or self.fitpars['r2c'] is None):
       bme.HandleErrors(True, "\nR2, R2b, or R2c has not been defined.\n") 
     if self.fitpars['lf'] is None:
-      bme.HandleErrors(True, "\nLarmor frequency has not been defined.\n")      
+      bme.HandleErrors(True, "\nLarmor frequency has not been defined.\n")
+
   #########################################################################
   # prPlotInp - Parse plot input block from raw input and parses it
   #           Maps values to local plotting parameters for 
@@ -248,7 +392,7 @@ class SimFit:
       for i in numArr:
         float(i)
     except ValueError:
-      bme.HandleErrors(True, "\nNot enough parameters defined for plotting params\n")
+      bme.HandleErrors(True, "\nNot enough parameters defined for params\n")
 
     return np.asarray(numArr).astype(float)
 
@@ -339,7 +483,7 @@ class SimFit:
       elif i[0].lower() == "error":
         if len(i) == 2:
           try:
-            self.r1perrpct = float(i[1])
+            self.r1perr = float(i[1])
           except ValueError:
             bme.HandleErrors(True, "\nError percentage does not exist\n")
     # Combine both on and off-res
