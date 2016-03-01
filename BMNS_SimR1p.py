@@ -9,7 +9,7 @@
 ### General imports ###
 import sys
 ### Direct numpy imports ###
-from numpy import absolute, arctan, array, asarray
+from numpy import absolute, append, arctan, array, asarray
 from numpy import cos
 from numpy import diag, dot
 from numpy import exp
@@ -544,8 +544,10 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
 # Returns:
 # o R1rho array
 # -- 0 R1rho
-# -- 1 R2eff
-# -- 2 Preexponential
+# -- 1 R1rho_err
+# -- 2 R2eff
+# -- 3 R2eff_err
+# -- 4 Preexponential
 # o Mag Sim array
 # -- 0  Peff : effective mag proj along avg effective
 # -- 1  PeffA : mag proj along A-state effective
@@ -571,7 +573,7 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
 # -- 7 w8-cy : eigenval 2 of state C, y-comp
 # -- 8 w9-cz : eigenval 3 of state C, z-comp
 #########################################################################
-def BMSim(ParD, wrf, w1, time, dec_err=0.0, r1p_err=0.0):
+def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500):
   # Numpy array to store mag vectors
   magVecs = zeros(13)
   # Numpy array to store eigenvalues
@@ -646,31 +648,56 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, r1p_err=0.0):
     # Col0 = Peff - mag projected along average
     # Col1 = Peff_err, if any
     # Col2,3,4 = PeffA,B,C - Projected along respective states
-    # Col5,6,7 = Mxa, Mxb, Mxc - x-comps of indv states
-    # Col8,9,10 = Mya, Myb, Myc
-    # Col11,12,13 = Mza, Mzb, Mzc
-    t0 = SimMagVecs(time.min(),M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) # Mag at min time
-    magVecs = asarray([SimMagVecs(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf,
-      error=t0[0]*dec_err) for x in time])
+    # Col5,6,7 = Mxa, Mya, Mza - x-comps of indv states
+    # Col8,9,10 = Mxb, Myb, Mzb
+    # Col11,12,13 = Mxc, Myc, Mzc
+    # Col14 = time
+    magVecs = asarray([SimMagVecs(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) for x in time])
+    # Append time to vectors
+    magVecs = append(magVecs, time[:,None], axis=1)
+
+    ## -- Monoexp Decay Error Corruption -- ##
+    if dec_err != 0.0:
+      # MC error number
+      mcnum = dec_mc
+      err = magVecs[:,0].max() * dec_err
+      # Get normal distributions given error scaled to max int value
+      # Generates a 2xN array of error corrupted Peff and Peff_err given
+      #  a normal fit to the mcnum of random values
+      # tp = array([normDist.fit(normal(x, err, size=mcnum)) for x in magVecs[:,0]])
+      tp = array([normal(x, err, size=mcnum) for x in magVecs[:,0]])
+       # Get mu and sigma for plots
+      #  Get mu from first random normal selection of Peff values
+      magVecs[:,0] = tp[:,0]
+      # magVecs[:,0] = tp.mean(axis=1)
+      magVecs[:,1] = tp.std(axis=1)
 
     # Calculate eigenvalues for export
-    eigVals = matrix_exponential(Ms, w1, wrf, 0.0, EigVal=True)[1]
+    # append offset and slp (Hz) to front of eigenvalues
+    eigVals = array([wrf/(2.*pi), w1/(2.*pi)])
+    eigVals = append(eigVals, matrix_exponential(Ms, w1, wrf, 0.0, EigVal=True)[1])
 
     # If mag vecs are not nan
     if not isnan(magVecs.sum()):
+      ## -- Monoexp fitting -- ##
+      # If decay noise corruption non-zero, noise corrupt fitted R1rhos
       if dec_err != 0.0:
+        # Weighted fit to get best R1rho value
         popt, pcov = curve_fit(ExpDecay, time, magVecs[:,0], (1., R1), sigma=magVecs[:,1])
+        # MC error generation of R1ho from noise corrupted intensities
+        popts = array([curve_fit(ExpDecay, time, x, (1., R1))[0] for x in tp.T])
+        preExp, R1p, R1p_err = popt[0], popt[1], popts.std(axis=0)[1]
+
+      # If no decay corruption, simply fit for R1rho
       else:
         popt, pcov = curve_fit(ExpDecay, time, magVecs[:,0], (1., R1))
-      R1p = popt[1]
-      preExp = popt[0]
-      fig = plt.figure()
-      plt.errorbar(time, magVecs[:,0], yerr=magVecs[:,1], fmt='o')
-      plt.plot(time, ExpDecay(time, *popt), c='red')
-      plt.show()
-      sys.exit()
+        R1p = popt[1]
+        R1p_err = 0.0
+        preExp = popt[0]
+
     else:
       R1p = 0.0
+      R1p_err = 0.0
       preExp = 1.
   else:
     # Calculate effective magnetization at Tmax and Tmin, respectively
@@ -703,18 +730,30 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, r1p_err=0.0):
       #  Then solve for R1rho with new min magnetization
       R1p = -1./tmax*log(magMin/magMax)
 
-  # # Faster alternative, assumes mag at T=0 is 0.0!
-  # R1p = -1./time[-1]*log(AltCalcMagT(time[-1],M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf))
-
   if isnan(R1p) == True:
     return array([0., 0., 1.]), magVecs, eigVals
   # If R1p is not NaN
   else:
+    ## -- R1rho Direct Error Corruption -- ##
+    if rho_err != 0.:
+      tv = normal(R1p, R1p*rho_err, size=rho_mc)
+      # Pick mean R1rho from first random normal distribution
+      R1p = tv[0]
+      R1p_err = tv.std()
+
     # Calculate R2eff - take on-res in to account
     # If on-resonance, thetaAvg = pi/2
     if deltaAvg == 0.: thetaAvg = pi/2.
-    R2eff = (R1p/sin(thetaAvg)**2.) - (R1/(tan(thetaAvg)**2.))
-    return array([R1p, R2eff, preExp]), magVecs, eigVals
+    # Propagate error in R2eff, if applicable
+    if R1p_err == 0.0:
+      R2eff = (R1p/sin(thetaAvg)**2.) - (R1/(tan(thetaAvg)**2.))
+      R2eff_err = 0.0
+    else:
+      R2eff = (ufloat(R1p, R1p_err)/umath.sin(thetaAvg)**2.) - (R1/(umath.tan(thetaAvg)**2.))
+      R2eff_err = R2eff.std_dev
+      R2eff = R2eff.n
+
+    return array([R1p, R1p_err, R2eff, R2eff_err, preExp]), magVecs, eigVals
 
 #########################################################################
 # Normalize a vector with lambda function #
@@ -847,7 +886,7 @@ def CalcMagT(time_incr, M0, Ms):
   magatT = dot(M0, dot((matrix_exponential(Ms*time_incr,w1,wrf)), M0))
   return(magatT)
 
-def SimMagVecs(dt,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf,error=0.0):
+def SimMagVecs(dt,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf):
   # Sim mag at time increment
   M = dot((matrix_exponential(Ms*dt, w1, wrf, dt)), M0)
   Mxa = M[0]
@@ -865,20 +904,7 @@ def SimMagVecs(dt,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf,error=0.0):
   PeffC = dot(vstack((Mxc,Myc,Mzc)).T, lOmegaC)[0]
   # Project mag along average effective
   Peff = PeffA + PeffB + PeffC
-
-  ## Error corruption of Peff ##
-  if error != 0.0:
-    # MC error number
-    mcnum = 500
-    # Get normal distribution given error scaled to max int value
-    tp = normal(Peff, error, size=mcnum)
-    # Fit normal distribution
-    tp = normDist.fit(tp)
-    Peff = tp[0] # mu
-    Peff_err = tp[1] # sigma
-
-  else:
-    Peff_err = 0.0
+  Peff_err = 0.0 # Placeholder
 
   return array([Peff, Peff_err, PeffA, PeffB, PeffC,
                    Mxa, Mya, Mza,

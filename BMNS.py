@@ -10,6 +10,8 @@
 # General libraries
 import os, sys
 import subprocess
+import datetime
+
 ### Local BMNS Libraries ###
 import BMNS_FitData as fd
 import BMNS_SimR1p as sim
@@ -468,21 +470,22 @@ def Main():
   #########################################################################
   #  arg1 '-sim'
   #  arg2 Parameter Text File
-  #  arg3 Parent directory of R1rho.csv data files
-  #        corresponding to names in pars file.
-  #       - Each csv is ordered:
-  #          Col 1: Offset (corrected, Hz)
-  #          Col 2: SLP (Hz)
-  #          Col 3: R1rho (s-1)
-  #          Col 4: R1rho err (s-1)[optional]
-  #      If first row is text, will delete first row
-  #       and first column, and shift col 2-5 to
-  #       col 1-4, as above.
-  #  arg4 Output directory for fit data [Optional]
-  #         If not given, will generate folder in
-  #         parent data directory.
+  #  arg3 (Optional) Specific output folder, will be made if does not exist
   #-----------------------------------------------------------------------#
   elif "sim" in sys.argv[1].lower():
+    # Create parent output directory
+    if len(sys.argv) >= 4:
+      outPath = os.path.join(curDir, sys.argv[3])
+      makeFolder(outPath)
+    else:
+      # Get timestamp for generating folder
+      mydate = datetime.datetime.now()
+      tst = mydate.strftime("Simulation_%m%d%y-%H%Mh%Ss")
+      outPath = os.path.join(curDir, tst)
+      makeFolder(outPath)
+    # Create folder for all magnetization vectors
+    outVec = os.path.join(outPath, "MagVecs")
+    makeFolder(outVec)
     # Create simulation class object
     sfo = simf.SimFit()
     # Clean and handle input args
@@ -490,7 +493,17 @@ def Main():
     # Simulate R1rho values
     sfo.simFit()
     # Plot R1rho values
-    sfo.plotR1p(curDir)
+    sfo.plotR1p(outPath)
+    # Plot R2eff values
+    sfo.plotR2eff(outPath)
+    # Plot onres R1rho values
+    sfo.plotOnRes(outPath)
+    # Plot monoexponential decays
+    sfo.plotDec(outPath)
+    # Write-out simulated R1rho values
+    sfo.writeR1p(outPath)
+    # Write-out simulated vectors and eigenvalues
+    sfo.writeVecVal(outVec, outPath)
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Tab to CSV splitter
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

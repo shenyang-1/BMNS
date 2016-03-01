@@ -1,4 +1,4 @@
-import os
+import os, sys
 import numpy as np
 import pandas as pd
 import itertools as it
@@ -7,6 +7,7 @@ import BMNS_SimR1p as sim
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib as mpl
+from matplotlib.backends.backend_pdf import PdfPages
 
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
@@ -16,38 +17,43 @@ class SimFit:
     # o R1rho array
     # -- 0 Offset (Hz)
     # -- 1 SLP (Hz)
-    # -- 2 Preexp
-    # -- 3 R1rho
+    # -- 2 R1rho
+    # -- 3 R1rho error
     # -- 4 R2eff
-    # -- 5 Preexponential
-    # -- 6 R1rho error
-    # -- 7 R2eff error
+    # -- 5 R2eff_err
+    # -- 6 Preexponential
     self.R1pV = []
+
     # o Mag Sim array
     # -- 0  Peff : effective mag proj along avg effective
-    # -- 1  PeffA : mag proj along A-state effective
-    # -- 2  PeffB : mag proj along B-state effective
-    # -- 3  PeffC : mag proj along C-state effective
-    # -- 4  Mxa : x-comp of A-state at time t
-    # -- 5  Mya : y-comp of A-state at time t
-    # -- 6  Mza : z-comp of A-state at time t
-    # -- 7  Mxb : x-comp of B-state at time t
-    # -- 8  Myb : y-comp of B-state at time t
-    # -- 9  Mzb : z-comp of B-state at time t
-    # -- 10 Mxc : x-comp of C-state at time t
-    # -- 11 Myc : y-comp of C-state at time t
-    # -- 12 Mzc : z-comp of C-state at time t
+    # -- 1  Peff_err : err from corruption of Peff
+    # -- 2  PeffA : mag proj along A-state effective
+    # -- 3  PeffB : mag proj along B-state effective
+    # -- 4  PeffC : mag proj along C-state effective
+    # -- 5  Mxa : x-comp of A-state at time t
+    # -- 6  Mya : y-comp of A-state at time t
+    # -- 7  Mza : z-comp of A-state at time t
+    # -- 8  Mxb : x-comp of B-state at time t
+    # -- 9  Myb : y-comp of B-state at time t
+    # -- 10 Mzb : z-comp of B-state at time t
+    # -- 11 Mxc : x-comp of C-state at time t
+    # -- 12 Myc : y-comp of C-state at time t
+    # -- 13 Mzc : z-comp of C-state at time t
+    # -- 14 time
     self.magVecs = []
+
     # o Eigenvalue array
-    # -- 0 w1-ax : eigenval 1 of state A, x-comp
-    # -- 1 w2-ay : eigenval 2 of state A, y-comp
-    # -- 2 w3-az : eigenval 3 of state A, z-comp
-    # -- 3 w4-bx : eigenval 1 of state B, x-comp
-    # -- 4 w5-by : eigenval 2 of state B, y-comp
-    # -- 5 w6-bz : eigenval 3 of state B, z-comp
-    # -- 6 w7-cx : eigenval 1 of state C, x-comp
-    # -- 7 w8-cy : eigenval 2 of state C, y-comp
-    # -- 8 w9-cz : eigenval 3 of state C, z-comp
+    # -- 0  offset Hz
+    # -- 1  SLP Hz
+    # -- 2  w1-ax : eigenval 1 of state A, x-comp
+    # -- 3  w2-ay : eigenval 2 of state A, y-comp
+    # -- 4  w3-az : eigenval 3 of state A, z-comp
+    # -- 5  w4-bx : eigenval 1 of state B, x-comp
+    # -- 6  w5-by : eigenval 2 of state B, y-comp
+    # -- 7  w6-bz : eigenval 3 of state B, z-comp
+    # -- 8  w7-cx : eigenval 1 of state C, x-comp
+    # -- 9  w8-cy : eigenval 2 of state C, y-comp
+    # -- 10 w9-cz : eigenval 3 of state C, z-comp
     self.eigVals = []
     # Current directory
     self.curDir = os.getcwd()
@@ -57,11 +63,13 @@ class SimFit:
     self.sloff = None
     self.slon = None
     self.slonoff = None
-    self.r1perr = 0.0 # Noise corruption pct for R1p values
+    self.rhoerr = 0.0 # Noise corruption pct for R1p values
+    self.rhomc = 500  # Number of monte carlo iterations for noise corruption
 
     # -- Simulation Decaying Intensity values -- #
     self.vdlist = np.linspace(0.0, 0.25, 51)
     self.decerr = 0.0 # Noise corruption pct for intensities
+    self.decmc = 500  # Number of monte carlo iterations for noise corruption
 
     # -- Plotting variables and their attributes -- #
     self.pltvar = {
@@ -74,7 +82,7 @@ class SimFit:
       "r2eff_y" : [None, None], # Lower, upper limits of y-dimension R2eff
       "on_x" : [None, None], # Lower, upper limits of x-dimension OnRes
       "on_y" : [None, None], # Lower, upper limits of y-dimension OnRes
-      "size" : (None, None), # Size of plots
+      "size" : [None, None], # Size of plots
       "axis_fs" : [16, 16], # Plots axes font size
       "label_fs" : [18, 18] # Label axes font size
       }
@@ -112,28 +120,95 @@ class SimFit:
   def simFit(self):
     # Simulate R1p, R2eff, vectors, eigenvalues, etc at different SLP offsets
     for of, sl in zip(self.slonoff[:,0], self.slonoff[:,1]):
-      a, b, c = sim.BMSim(self.fitpars, -of, sl, self.vdlist, self.decerr, self.r1perr)
+      a, b, c = sim.BMSim(self.fitpars, -of, sl, self.vdlist, self.decerr, self.decmc,
+                          self.rhoerr, self.rhomc)
       self.R1pV.append(a)
       self.magVecs.append(b)
       self.eigVals.append(c)
     # Convert all lists to numpy arrays
     self.R1pV = np.asarray(self.R1pV)
     self.R1pV = np.append(self.slonoff, self.R1pV, axis=1)
-    self.magVecs = np.asarray(self.magVecs)
-    self.eigVals = np.asarray(self.eigVals)
+    self.magVecs = np.asarray(self.magVecs).astype(np.float64)
+    self.eigVals = np.asarray(self.eigVals).astype(np.float64)
 
+  #########################################################################
+  # plotR1p - Writes out R1rho values
+  #########################################################################
+  def writeR1p(self, outp):
+    outR1p = os.path.join(outp, "sim-r1p.csv")
+    r1phdr = "offset,slp,r1p,r1p_err,r2eff,r2eff_err,prexp"
+    np.savetxt(outR1p, self.R1pV, delimiter=',', header=r1phdr, comments='')
+
+  #########################################################################
+  # plotR1p - Writes out magnetization vectors and eigenvalues
+  #########################################################################
+  def writeVecVal(self, outvec, outev):
+    hdr = "Peff,Peff_err,PeffA,PeffB,PeffC,Mxa,Mya,Mza,Mxb,Myb,Mzb,Mxc,Myc,Mzc,time"
+    # Write out magnetization vectors
+    for n,i in zip(self.R1pV, self.magVecs):
+      of, sl = n[0], n[1]
+      magp = os.path.join(outvec, "%s_%s.csv" % (of, sl))
+      np.savetxt(magp, i, delimiter=',', header=hdr, comments='')
+
+    eigvp = os.path.join(outev, "sim-eigenvalues.csv")
+    hdr = "offset,slp,w1,w2,w3,w4,w5,w6,w7,w8,w9"
+    np.savetxt(eigvp, self.eigVals, delimiter=',', header=hdr, comments='')
+
+  #########################################################################
+  # plotDec - Plots monoexponential decays
+  #########################################################################
+  def plotDec(self, figp):
+    # output path
+    figp = os.path.join(figp, "sim-decaycurves.pdf")
+    # Define PDFPages object for multipage decay plots
+    pp = PdfPages(figp)
+
+    for n, d in zip(self.R1pV, self.magVecs):
+      # Values of R1p/R1rho_err for sim fit line and title
+      A, R1p, R1p_err = n[6], n[2], n[3]
+      of, sl = n[0], n[1]
+      # -- Define figure -- #
+      fig = plt.figure()
+      plt.errorbar(d[:,14], d[:,0], yerr=d[:,1], fmt='o')
+      # Simulate x-values for plotting trendline
+      if 101 < len(d[:,14]):
+        simX = np.linspace(d[:,14].min(), d[:,14].max(), 51)
+      else:
+        simX = d[:,14]
+      # Plot simulated trend-line
+      plt.plot(simX, sim.ExpDecay(simX, A, R1p), c='red')
+      # Define plot limits
+      plt.xlim(0.0, d[:,14].max()*1.05)
+      plt.ylim(0.0, 1.1)
+      # # -- Set a title -- #
+      plt.title(r'$R_{1\rho}=%0.1f\pm%0.1f\,s^{-1}\quad\omega_1=%0.0f\,Hz\quad\Omega_{eff}=%0.0f\,Hz$'
+                % (R1p, R1p_err, sl, of), size=16)
+      # -- Set axes labels -- #
+      plt.xlabel(r'$Seconds$', size=self.pltvar['label_fs'][0])
+      plt.ylabel(r'$Intensity$', size=self.pltvar['label_fs'][1])
+      # -- Set axes font sizes -- #
+      rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+      pp.savefig()
+      plt.close(fig)
+      plt.clf()
+
+    pp.close()
   #########################################################################
   # plotR1p - Plots R1rho values
   #########################################################################
   def plotR1p(self, figp):
     # Find unique SLPs for on/off-res
-    uoffslp = sorted(list(set(self.sloff[:,1])))
-    uonslp = sorted(list(set(self.slon[:,1])))
+    if self.sloff is not None:
+      uoffslp = sorted(list(set(self.sloff[:,1])))
+
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.sans-serif'] = 'arial'
-    # Remove onres values from self.R1pV array
-    offv = self.R1pV[self.R1pV[:,0] != 0.]
-    # Split (N, 5) array in to a (M, N, 5) array, where
+    # # Remove onres values from self.R1pV array
+    # offv = self.R1pV[self.R1pV[:,0] != 0.]
+    # Sort array of R1rho/R2eff values by offset
+    #  This is needed to remove plotting artifacts
+    offv = self.R1pV[self.R1pV[:,0].argsort()]
+    # Split (N, 7) array in to a (M, N, 7) array, where
     #  M = unique offsets
     offv = np.array([offv[offv[:,1] == x] for x in uoffslp])
     ##### Start decorating plot #####
@@ -146,20 +221,21 @@ class SimFit:
 
     # -- Start plotting -- #
     for n in offv:
+      of = n[:,0]/1e3
       if self.pltvar['plot'] == "symbol":
-        plt.plot(n[:,0], n[:,2], self.pltvar['symbol'][0],
+        plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
                  markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
       elif self.pltvar['plot'] == "line":
-        plt.plot(n[:,0], n[:,2], self.pltvar['line'][0],
+        plt.plot(of, n[:,2], self.pltvar['line'][0],
                  linewidth=self.pltvar['line'][1], label=int(n[2][1]))
       elif self.pltvar['plot'] == "both":
-        plot = plt.plot(n[:,0], n[:,2], self.pltvar['symbol'][0],
+        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
                  markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
-        plt.plot(n[:,0], n[:,2], self.pltvar['line'][0],
+        plt.plot(of, n[:,2], self.pltvar['line'][0],
                  linewidth=self.pltvar['line'][1], c=plot[0].get_color())
     ##### Start decorating plot #####
-    # -- Set a title -- #
-    plt.title(r'$R_{1\rho}$', size=18)
+    # # -- Set a title -- #
+    # plt.title(r'$R_{1\rho}$', size=18)
     # -- Set legends -- #
     legend = plt.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
     plt.setp(legend.get_title(), fontsize=self.pltvar['axis_fs'][1])
@@ -177,7 +253,7 @@ class SimFit:
       xmax = self.R1pV[:,0].max() * 1.05
     else:
       xmax = self.pltvar['r1p_x'][1]    
-    plt.xlim(xmin, xmax)
+    plt.xlim(xmin/1e3, xmax/1e3)
     # -- Set Y-axes limits -- #
     if self.pltvar['r1p_y'][0] is None:
       ymin = 0.0
@@ -188,7 +264,155 @@ class SimFit:
     else:
       ymax = self.pltvar['r1p_y'][1]    
     plt.ylim(ymin, ymax)
-    figp = os.path.join(figp, "R1rho.pdf")
+    # -- Write out figure -- #
+    figp = os.path.join(figp, "sim-R1rho-OffRes.pdf")
+    plt.savefig(figp, transparent=True)
+    plt.close(fig)
+    plt.clf()
+
+  #########################################################################
+  # plotR2eff - Plots R1rho values
+  #########################################################################
+  def plotR2eff(self, figp):
+    # Find unique SLPs for on/off-res
+    if self.sloff is not None:
+      uoffslp = sorted(list(set(self.sloff[:,1])))
+
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.sans-serif'] = 'arial'
+    # # Remove onres values from self.R1pV array
+    # offv = self.R1pV[self.R1pV[:,0] != 0.]
+    # Sort array of R1rho/R2eff values by offset
+    #  This is needed to remove plotting artifacts
+    offv = self.R1pV[self.R1pV[:,0].argsort()]
+    # Split (N, 7) array in to a (M, N, 7) array, where
+    #  M = unique offsets
+    offv = np.array([offv[offv[:,1] == x] for x in uoffslp])
+
+    ##### Start decorating plot #####
+    # -- Define figure -- #
+    fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
+                     dpi=60)
+    # -- Define Colormap -- #
+    colormap = plt.cm.jet
+    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, offv.shape[0])])
+
+    # -- Start plotting -- #
+    for n in offv:
+      of = n[:,0]/1e3
+      if self.pltvar['plot'] == "symbol":
+        plt.errorbar(of, n[:,4], yerr=n[:,5], fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+      elif self.pltvar['plot'] == "line":
+        plt.plot(of, n[:,4], self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], label=int(n[2][1]))
+      elif self.pltvar['plot'] == "both":
+        plot = plt.errorbar(of, n[:,4], yerr=n[:,5], fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+        plt.plot(of, n[:,4], self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+    ##### Start decorating plot #####
+    # # -- Set a title -- #
+    # plt.title(r'$R_{1\rho}$', size=18)
+    # -- Set legends -- #
+    legend = plt.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
+    plt.setp(legend.get_title(), fontsize=self.pltvar['axis_fs'][1])
+    # -- Set axes labels -- #
+    plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
+    plt.ylabel(r'$R_{2}+R_{ex}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
+    # -- Set axes font sizes -- #
+    rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+    # -- Set X-axes limits -- #
+    if self.pltvar['r2eff_x'][0] is None:
+      xmin = self.R1pV[:,0].min() * 1.05
+    else:
+      xmin = self.pltvar['r2eff_x'][0]
+    if self.pltvar['r2eff_x'][1] is None:
+      xmax = self.R1pV[:,0].max() * 1.05
+    else:
+      xmax = self.pltvar['r2eff_x'][1]    
+    plt.xlim(xmin/1e3, xmax/1e3)
+    # -- Set Y-axes limits -- #
+    if self.pltvar['r2eff_y'][0] is None:
+      ymin = 0.0
+    else:
+      ymin = self.pltvar['r2eff_y'][0]
+    if self.pltvar['r2eff_y'][1] is None:
+      ymax = self.R1pV[:,4].max() * 1.05
+    else:
+      ymax = self.pltvar['r2eff_y'][1]    
+    plt.ylim(ymin, ymax)
+    # -- Write out figure -- #
+    figp = os.path.join(figp, "sim-R2eff.pdf")
+    plt.savefig(figp, transparent=True)
+    plt.close(fig)
+    plt.clf()
+
+  #########################################################################
+  # plotOnRes - Plots R1rho values
+  #########################################################################
+  def plotOnRes(self, figp):
+    # Find unique SLPs for on/off-res
+    if self.slon is not None:
+      uoffslp = sorted(list(set(self.sloff[:,1])))
+
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.sans-serif'] = 'arial'
+    # # Remove onres values from self.R1pV array
+    # offv = self.R1pV[self.R1pV[:,0] != 0.]
+    # Sort array of R1rho/R2eff values by offset
+    #  This is needed to remove plotting artifacts
+    n = self.R1pV
+    n = n[n[:,0] == 0.]
+    n = n[n[:,1].argsort()]
+    ##### Start decorating plot #####
+    # -- Define figure -- #
+    fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
+                     dpi=60)
+    # -- Define Colormap -- #
+    colormap = plt.cm.jet
+    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, n.shape[0])])
+
+    # -- Start plotting -- #
+    if self.pltvar['plot'] == "symbol":
+      plt.errorbar(n[:,1], n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
+               markersize=self.pltvar['symbol'][1])
+    elif self.pltvar['plot'] == "line":
+      plt.plot(n[:,1], n[:,2], self.pltvar['line'][0],
+               linewidth=self.pltvar['line'][1])
+    elif self.pltvar['plot'] == "both":
+      plot = plt.errorbar(n[:,1], n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
+               markersize=self.pltvar['symbol'][1])
+      plt.plot(n[:,1], n[:,2], self.pltvar['line'][0],
+               linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+    ##### Start decorating plot #####
+    # -- Set axes labels -- #
+    plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
+    plt.ylabel(r'$R_{2}+R_{ex}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
+    # -- Set axes font sizes -- #
+    rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+    # -- Set X-axes limits -- #
+    if self.pltvar['on_x'][0] is None:
+      xmin = n[:,1].min() * 1.05
+    else:
+      xmin = self.pltvar['on_x'][0]
+    if self.pltvar['on_x'][1] is None:
+      xmax = n[:,1].max() * 1.05
+    else:
+      xmax = self.pltvar['on_x'][1]    
+    plt.xlim(xmin, xmax)
+    # -- Set Y-axes limits -- #
+    if self.pltvar['on_y'][0] is None:
+      ymin = 0.0
+    else:
+      ymin = self.pltvar['on_y'][0]
+    if self.pltvar['on_y'][1] is None:
+      ymax = self.R1pV[:,2].max() * 1.05
+    else:
+      ymax = self.pltvar['on_y'][1]    
+    plt.ylim(ymin, ymax)
+    # -- Write out figure -- #
+    figp = os.path.join(figp, "sim-R1p-OnRes.pdf")
     plt.savefig(figp, transparent=True)
     plt.close(fig)
     plt.clf()
@@ -271,7 +495,13 @@ class SimFit:
         try:
           self.decerr = float(i[1])
         except ValueError:
-          bme.HandleErrors(True, "\nNo error percentage defined for decay sim\n")
+          bme.HandleErrors(True, "\nNo/bad error percentage defined for decay sim\n")
+      # Get error MC num for noise corruption of decay
+      elif i[0].lower() == "mcnum" and len(i) == 2:
+        try:
+          self.decmc = int(i[1])
+        except ValueError:
+          bme.HandleErrors(True, "\nNo/bad MC num defined for error corruption of decay sim\n")
       # Generate vdlist from lower/upper bounds
       elif i[0].lower() == "vdlist":
         if len(i) == 4:
@@ -280,7 +510,7 @@ class SimFit:
           if minv > maxv: minv, maxv = maxv, minv
           # Generate/add to vdlist
           tvd = np.linspace(minv, maxv, numv)
-          self.vdlist = np.append(self.vdlist, tvd)
+          self.vdlist = tvd
 
   #########################################################################
   # prParInp - Parse BM parameters input block from raw input and parses it
@@ -363,10 +593,18 @@ class SimFit:
         v = i[0].lower()
         # Check for numerical values if not line type or symbol
         if v != "line" and v != "symbol":
-          # Check variable numbers are nubmers
-          tvars = self.checkNums(i[1:])
-          # assign variables to dict with ranges
-          self.pltvar[v] = tvars
+          if i[1].lower() != "none":
+            try:
+              tv = float(i[1])
+              self.pltvar[v][0] = tv
+            except ValueError:
+              bme.HandleErrors(True, "\nNon-numeric value in plotting specs.\n")
+          if i[2].lower() != "none":
+            try:
+              tv = float(i[2])
+              self.pltvar[v][1] = tv
+            except ValueError:
+              bme.HandleErrors(True, "\nNon-numeric value in plotting specs.\n")
         else:
           # Make sure line/symbol size is numerical
           try:
@@ -483,9 +721,21 @@ class SimFit:
       elif i[0].lower() == "error":
         if len(i) == 2:
           try:
-            self.r1perr = float(i[1])
+            self.rhoerr = float(i[1])
           except ValueError:
             bme.HandleErrors(True, "\nError percentage does not exist\n")
+      # Get error MCnum for corruption of R1rho values
+      elif i[0].lower() == "mcnum":
+        if len(i) == 2:
+          try:
+            self.rhomc = int(i[1])
+          except ValueError:
+            bme.HandleErrors(True, "\nError corruption MC number does not exist\n")
     # Combine both on and off-res
-    self.slonoff = np.append(self.slon, self.sloff, axis=0)
+    if self.slon is None:
+      self.slonoff = self.sloff
+    elif self.sloff is None:
+      self.slonoff = self.slon
+    else:
+      self.slonoff = np.append(self.slon, self.sloff, axis=0)
 
