@@ -1,0 +1,2 @@
+Run:
+bm -fit Fit-InputPars.txt . Test-Global-3StateWithMinor/
