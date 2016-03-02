@@ -442,6 +442,7 @@ class SimFit:
       ymax = self.pltvar['r1p_y'][1]    
     plt.ylim(ymin, ymax)
     # -- Write out figure -- #
+    plt.tight_layout()
     figp = os.path.join(figp, "sim-R1rho-OffRes.pdf")
     plt.savefig(figp, transparent=True)
     plt.close(fig)
@@ -578,6 +579,7 @@ class SimFit:
       ymax = self.pltvar['r2eff_y'][1]    
     plt.ylim(ymin, ymax)
     # -- Write out figure -- #
+    plt.tight_layout()
     figp = os.path.join(figp, "sim-R2eff.pdf")
     plt.savefig(figp, transparent=True)
     plt.close(fig)
@@ -668,6 +670,7 @@ class SimFit:
     plt.ylim(ymin, ymax)
     # -- Write out figure -- #
     figp = os.path.join(figp, "sim-R1p-OnRes.pdf")
+    plt.tight_layout()
     plt.savefig(figp, transparent=True)
     plt.close(fig)
     plt.clf()
@@ -707,19 +710,20 @@ class SimFit:
     #  3. Name
     #  4. (Optional) Decay - Monoexponential decays
     for b in inpRaw:
-      # Parse spinlock powers and offsets to be used in the simulation
-      if "sloff" in b[0][0].lower():
-        self.prSLOff(b)
-      # Parse plotting variables
-      elif "plot" in b[0][0].lower():
-        self.prPlotInp(b)
-      # Parse input parameters for BM simulation
-      elif "params" in b[0][0].lower():
-        self.prParInp(b)
-        self.checkFitPars()
-      # Parse monoexponential decays, if they exist
-      elif "decay" in b[0][0].lower():
-        self.prDecay(b)
+      if len(b) >= 1:
+        # Parse spinlock powers and offsets to be used in the simulation
+        if "sloff" in b[0][0].lower():
+          self.prSLOff(b)
+        # Parse plotting variables
+        elif "plot" in b[0][0].lower():
+          self.prPlotInp(b)
+        # Parse input parameters for BM simulation
+        elif "params" in b[0][0].lower():
+          self.prParInp(b)
+          self.checkFitPars()
+        # Parse monoexponential decays, if they exist
+        elif "decay" in b[0][0].lower():
+          self.prDecay(b)
 
   #########################################################################
   # prDecay - Parse SL duration values for simulating monoexponential decays

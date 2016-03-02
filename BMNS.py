@@ -636,6 +636,22 @@ def Main():
     FILE.close()
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Generate Example Simulation Input file
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #  arg1 '-gensim'
+  #  arg2 output directory
+  #---------------------------------------------------
+  elif sys.argv[1].lower() == "-gensim":
+    outstr = '''
+
+'''
+    outPath = os.path.join(curDir, sys.argv[2])
+    makeFolder(outPath)
+    FILE = open(os.path.join(outPath, "BMNS-SimParams.txt"), "wb")
+    FILE.writelines(outstr)
+    FILE.close()
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Generate Example Parameters Text file
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #  arg1 '-genpar'
@@ -650,13 +666,15 @@ def Main():
     outstr = '''
 ##################################################################################
 # Run the BMNS fitting program:
-# > python BMNS.py -fit [/Path/To/Pars.txt] [/Path/To/R1p_data.csv] [Output directory]
+# > python BMNS.py -fit [BM Parameter Input File] [R1rho Data Directory] (Optional Output directory)
 ##################################################################################
 # Define fitting setup.
 # FitType: can be 'global' or 'local' or 'brute'
 #          This is for global or local optimizations, not shared parameter fits.
 #          'Brute' designates brute-force fixed calculations of the range of parameter
 #                   space designated by lower/upper bounds on parameters.
+#          - 'brutep' will generate plots at each increment point.
+#             WARNING: This can take a LONG time.
 #
 #          'Local' uses Levenberg-Marquardt semi-gradient descent/Gauss-Newton algorithm
 #          'Global' uses the "Adaptive Memory Programming for Global Optimizations"
