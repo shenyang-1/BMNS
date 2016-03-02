@@ -661,10 +661,10 @@ class Parse:
         # Check if first element is non-numerical but not folders
         #  This is to prevent deleting first column that's not
         #  disposable folder numbers.
-        if tData[0][0] != "Folder":
-          nodel = True
-        else:
+        if "Folder" in tData[0][0]:
           nodel = False
+        else:
+          nodel = True
         # Delete first row, assumed to be the header
         tData = delete(tData, 0, 0)
 

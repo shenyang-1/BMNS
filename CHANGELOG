@@ -9,6 +9,7 @@ Mar 02 2016
   spinlock powers and offsets. Both simulated magnetization and R1rho values
   can be noise corrupted.
 - Magnetization vectors can be animated in 3D.
+- Changed coloring method for plots.
 
 Feb 29 2016
 ************
