@@ -38,30 +38,7 @@ If package(s) are already installed, make sure each is up-to-date:
 ##   Testing Fits   ##
 ######################
 From directory of BMNS enter the following in the terminal
-> python BMNS.py -fit Example/1-run1_Model1.txt.txt Example/ TestFit/
-
-If successful, you should generate a 'TestFit' directory in the BMNS folder with the following files and folders:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Copies/
--- copy-hpTT-GTG_G6-C1p.csv
--- copy-input.txt
-Local/
----- Matrices/
-------- LocalStats_Correlation_hpTT-GTG_G6-C1p_1.csv
-------- LocalStats_Covariance_hpTT-GTG_G6-C1p_1.csv
-------- LocalStats_Jacobian_hpTT-GTG_G6-C1p_1.csv
-------- LocalStats_Residuals_hpTT-GTG_G6-C1p_1.csv
-------- LocalStats_StdErr_hpTT-GTG_G6-C1p_1.csv
--- Data_hpTT-GTG_G6-C1p_1.csv
--- R1rho_Figs_hpTT-GTG_G6-C1p_1.pdf
--- R1pR2eff_Figs_hpTT-GTG_G6-C1p_1.pdf
--- R2eff_Figs_hpTT-GTG_G6-C1p_1.pdf
-
-- 2-state_Formatted_LocalFits_hpTT-GTG_G6-C1p.csv
-- LocalFits_hpTT-GTG_G6-C1p.csv
-- LocalFits_hpTT-GTG_G6-C1p_thermo.csv (* after you run the -thermo command)
-- LocalStats_hpTT-GTG_G6-C1p.csv
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> python BMNS.py -fit Example/1-run1_Model1.txt Example/ TestFit/
 
 #########################
 ##  Creating an Alias  ##
@@ -100,6 +77,7 @@ alias bm 'python /path/to/BMNS/BMNS.py'
 ##  BMNS Commands      ##
 #########################
 Now to run a fit from any directory just use:
-> bm -fit [input file] [data directory] [output directory]
+> bm -fit [input fit parameter file] [data directory] [output directory]
 > bm -thermo [BM fit.csv] [temperature, C or K]
 > bm -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]
+> bm -sim [input sim parameter file] (optional output folder name)

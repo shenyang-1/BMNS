@@ -317,12 +317,17 @@ class SimFit:
   def plotR1p(self, figp):
     # Find unique SLPs for on/off-res
     if self.sloff is not None:
+      # If real data exists, need to split it as well
       if len(self.data) > 0:
+        # Define unique number of SLPs for generating color map
         cslp = sorted(list(set(self.sloff[:,1]) | set(self.data[:,1])))
         uoffslp = sorted(list(set(self.sloff[:,1])))
         doffslp = sorted(list(set(self.data[:,1])))
       else:
+        # Define unique number of SLPs
         uoffslp = sorted(list(set(self.sloff[:,1])))
+        doffslp = [] # Empty list for real data
+        cslp = uoffslp
       
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.sans-serif'] = 'arial'
@@ -347,35 +352,62 @@ class SimFit:
                      dpi=60)
     # -- Define Colormap -- #
     colormap = plt.cm.jet
-    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, offv.shape[0])])
+    # Create a dictionary of colormap objects, each unique SLP assigned to its own color
     cdict = {}
+    # Generate span of colors over all unique slps
     lincolor = np.linspace(0, 1, len(cslp))
     for c,i in zip(lincolor, cslp):
       cdict[i] = colormap(c)
 
     # -- Start plotting simulated data-- #
     for n in offv:
-      of = n[:,0]/1e3
-      if self.pltvar['plot'] == "symbol":
-        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]), c=cdict[n[0][1]])
+      # Set xdata
+      ## Set offsets in kHz increments
+      xd = n[:,0]/1e3
+      # Set ydata
+      yd = n[:,2] # R1rho
+      # Set yerr
+      ye = n[:,3] # R1rho_err
 
+      # Define current SLP, as int
+      slp = n[0][1]
+      # Define SLP label
+      if float(slp) in doffslp:
+        lbl = '' # Null label if real data exists for this SLP
+      else:
+        lbl = int(slp)
+      # Plot symbol only, sim data
+      if self.pltvar['plot'] == "symbol":
+        plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl, c=cdict[slp])
+      # Plot line only, sim data
       elif self.pltvar['plot'] == "line":
-        plt.plot(of, n[:,2], self.pltvar['line'][0],
-                 linewidth=self.pltvar['line'][1], label=int(n[0][1]),
+        plt.plot(xd, yd, self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], label=lbl,
                  c=cdict[n[0][1]])
+      # Plot symbol and line, sim data
       elif self.pltvar['plot'] == "both":
-        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]),
-                 c=cdict[n[0][1]])
-        plt.plot(of, n[:,2], self.pltvar['line'][0],
-                 linewidth=self.pltvar['line'][1], c=plot[0].get_color())
-    # -- Start plotting real data-- #
+        plot = plt.plot(xd, yd, self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], c=cdict[slp])
+        plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl,
+                 c=plot[0].get_color())
+
+    # -- Start plotting real data, if it exists -- #
     if len(reald) != 0:
       for n in reald:
-        of = n[:,0]/1e3
-        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]),
+        # Set offsets in kHz increments
+        xd = n[:,0]/1e3
+        # Set ydata
+        yd = n[:,2] # R1rho
+        # Set yerr
+        ye = n[:,3] # R1rho_err
+        # Define current SLP, as int
+        slp = n[0][1]
+        # Define plot lbl
+        lbl = int(slp)
+        plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl,
                  c=cdict[n[0][1]])
 
     ##### Start decorating plot #####
@@ -421,8 +453,18 @@ class SimFit:
   def plotR2eff(self, figp):
     # Find unique SLPs for on/off-res
     if self.sloff is not None:
-      uoffslp = sorted(list(set(self.sloff[:,1])))
-
+      # If real data exists, need to split it as well
+      if len(self.data) > 0:
+        # Define unique number of SLPs for generating color map
+        cslp = sorted(list(set(self.sloff[:,1]) | set(self.data[:,1])))
+        uoffslp = sorted(list(set(self.sloff[:,1])))
+        doffslp = sorted(list(set(self.data[:,1])))
+      else:
+        # Define unique number of SLPs
+        uoffslp = sorted(list(set(self.sloff[:,1])))
+        doffslp = [] # Empty list for real data
+        cslp = uoffslp
+      
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.sans-serif'] = 'arial'
     # # Remove onres values from self.R1pV array
@@ -433,6 +475,12 @@ class SimFit:
     # Split (N, 7) array in to a (M, N, 7) array, where
     #  M = unique offsets
     offv = np.array([offv[offv[:,1] == x] for x in uoffslp])
+    # Repeat trim for real data
+    # NOTE: this could mean that real data is missing from plot if
+    #       simulated SLPs don't overlap with it's own SLPs
+    if len(self.data) != 0:
+      reald = self.data[self.data[:,0].argsort()]
+      reald = np.array([reald[reald[:,1] == x] for x in doffslp])
 
     ##### Start decorating plot #####
     # -- Define figure -- #
@@ -440,22 +488,64 @@ class SimFit:
                      dpi=60)
     # -- Define Colormap -- #
     colormap = plt.cm.jet
-    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, offv.shape[0])])
+    # Create a dictionary of colormap objects, each unique SLP assigned to its own color
+    cdict = {}
+    # Generate span of colors over all unique slps
+    lincolor = np.linspace(0, 1, len(cslp))
+    for c,i in zip(lincolor, cslp):
+      cdict[i] = colormap(c)
 
-    # -- Start plotting -- #
+    # -- Start plotting simulated data-- #
     for n in offv:
-      of = n[:,0]/1e3
+      # Set xdata
+      ## Set offsets in kHz increments
+      xd = n[:,0]/1e3
+      # Set ydata
+      yd = n[:,4] # R1rho
+      # Set yerr
+      ye = n[:,5] # R1rho_err
+
+      # Define current SLP, as int
+      slp = n[0][1]
+      # Define SLP label
+      if float(slp) in doffslp:
+        lbl = '' # Null label if real data exists for this SLP
+      else:
+        lbl = int(slp)
+      # Plot symbol only, sim data
       if self.pltvar['plot'] == "symbol":
-        plt.errorbar(of, n[:,4], yerr=n[:,5], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+        plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl, c=cdict[slp])
+      # Plot line only, sim data
       elif self.pltvar['plot'] == "line":
-        plt.plot(of, n[:,4], self.pltvar['line'][0],
-                 linewidth=self.pltvar['line'][1], label=int(n[2][1]))
+        plt.plot(xd, yd, self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], label=lbl,
+                 c=cdict[n[0][1]])
+      # Plot symbol and line, sim data
       elif self.pltvar['plot'] == "both":
-        plot = plt.errorbar(of, n[:,4], yerr=n[:,5], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
-        plt.plot(of, n[:,4], self.pltvar['line'][0],
-                 linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+        plot = plt.plot(xd, yd, self.pltvar['line'][0],
+                 linewidth=self.pltvar['line'][1], c=cdict[slp])
+        plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl,
+                 c=plot[0].get_color())
+
+    # -- Start plotting real data, if it exists -- #
+    if len(reald) != 0:
+      for n in reald:
+        # Set offsets in kHz increments
+        xd = n[:,0]/1e3
+        # Set ydata
+        yd = n[:,4] # R2eff
+        # Set yerr
+        ye = n[:,5] # R1rho_err
+        # Define current SLP, as int
+        slp = n[0][1]
+        # Define plot lbl
+        lbl = int(slp)
+        plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=lbl,
+                 c=cdict[n[0][1]])
+
     ##### Start decorating plot #####
     # # -- Set a title -- #
     # plt.title(r'$R_{1\rho}$', size=18)
@@ -497,39 +587,59 @@ class SimFit:
   # plotOnRes - Plots R1rho values
   #########################################################################
   def plotOnRes(self, figp):
-    # Find unique SLPs for on/off-res
-    if self.slon is not None:
-      uoffslp = sorted(list(set(self.sloff[:,1])))
-
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.sans-serif'] = 'arial'
-    # # Remove onres values from self.R1pV array
-    # offv = self.R1pV[self.R1pV[:,0] != 0.]
-    # Sort array of R1rho/R2eff values by offset
-    #  This is needed to remove plotting artifacts
+    # Remove offres R1rho values
+    # sim data
     n = self.R1pV
     n = n[n[:,0] == 0.]
     n = n[n[:,1].argsort()]
+    # Remove offres R1rho values
+    # real data
+    if len(self.data) > 0:
+      d = self.data
+      d = d[d[:,0] == 0.]
+      d = d[d[:,1].argsort()]
+    else:
+      d = []
     ##### Start decorating plot #####
     # -- Define figure -- #
     fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
                      dpi=60)
-    # -- Define Colormap -- #
-    colormap = plt.cm.jet
-    plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, n.shape[0])])
 
-    # -- Start plotting -- #
+    # -- Start plotting Simulated data -- #
+    # Set xdata
+    ## Set offsets in kHz increments
+    xd = n[:,1]/1e3
+    # Set ydata
+    yd = n[:,2] # R1rho
+    # Set yerr
+    ye = n[:,3] # R1rho_err
+
     if self.pltvar['plot'] == "symbol":
-      plt.errorbar(n[:,1], n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-               markersize=self.pltvar['symbol'][1])
+      plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+               markersize=self.pltvar['symbol'][1], c='black')
     elif self.pltvar['plot'] == "line":
-      plt.plot(n[:,1], n[:,2], self.pltvar['line'][0],
-               linewidth=self.pltvar['line'][1])
+      plt.plot(xd, yd, self.pltvar['line'][0],
+               linewidth=self.pltvar['line'][1], c='black')
     elif self.pltvar['plot'] == "both":
-      plot = plt.errorbar(n[:,1], n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-               markersize=self.pltvar['symbol'][1])
-      plt.plot(n[:,1], n[:,2], self.pltvar['line'][0],
-               linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+      plt.plot(xd, yd, self.pltvar['line'][0],
+               linewidth=self.pltvar['line'][1], c='black')
+      plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+               markersize=self.pltvar['symbol'][1], c='black')
+    
+    # -- Start plotting Real data -- #
+    if len(d) != 0:
+      # Set xdata
+      ## Set offsets in kHz increments
+      xd = d[:,1]/1e3
+      # Set ydata
+      yd = d[:,2] # R1rho
+      # Set yerr
+      ye = d[:,3] # R1rho_err
+      plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+               markersize=self.pltvar['symbol'][1], c='black')
+
     ##### Start decorating plot #####
     # -- Set axes labels -- #
     plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
@@ -545,7 +655,7 @@ class SimFit:
       xmax = n[:,1].max() * 1.05
     else:
       xmax = self.pltvar['on_x'][1]    
-    plt.xlim(xmin, xmax)
+    plt.xlim(xmin/1e3, xmax/1e3)
     # -- Set Y-axes limits -- #
     if self.pltvar['on_y'][0] is None:
       ymin = 0.0
