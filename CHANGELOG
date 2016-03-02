@@ -1,5 +1,21 @@
-Bloch-McConnell Numerical Solution (BMNS)
+#########################################################################
+# Bloch-McConnell 2-/3-state Fitting/Simulation Program
+#  Isaac Kimsey
+#########################################################################
+
+Mar 02 2016
+************
+- Can now directly simulate decaying magnetization and R1rho values at given
+  spinlock powers and offsets. Both simulated magnetization and R1rho values
+  can be noise corrupted.
+- Magnetization vectors can be animated in 3D.
+
 Feb 29 2016
+************
+- Can brute-force search over N-parameter space. Fit carries out from value
+  that gives the lowest red. chi^2.
+
+Feb 21 2016
 ************
 !!! Note: Scipy >= v0.17 must be installed !!! (use: sudo pip install --upgrade scipy)
 !!! Note: Pandas must be installed !!! (use: sudo pip install pandas)
@@ -28,30 +44,3 @@ Feb 29 2016
   o Jacobian matrix
   o Covariance matrix
   o Correlation matrix
-	
-Fit Model Comparison Example
-----------------------------------------
-
->BMNS -compare Model1.csv Model2.csv Model3.csv
-
------- AIC Tests ------
-o Model #1 is FAVORED.
-  - AIC = -48.1421777115
-  - Model probability = 0.987496061266
-o Model #2 is DISFAVORED.
-  - AIC = 240.353598068
-  - Model probability = 2.2308667745e-63
-o Model #3 is DISFAVORED.
-  - AIC = -39.403920082
-  - Model probability = 0.0125039387344
-
------- BIC Tests ------
-o Model #1 is FAVORED.
-  - BIC = -34.7310347871
-  - Model probability = 0.955409865613
-o Model #2 is DISFAVORED.
-  - BIC = 253.764740992
-  - Model probability = 2.15838038171e-63
-o Model #3 is DISFAVORED.
-  - BIC = -28.6017791979
-  - Model probability = 0.0445901343866

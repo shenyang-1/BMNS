@@ -2,9 +2,21 @@
 # Bloch-McConnell 2-/3-state Fitting/Simulation Program
 #  Isaac Kimsey
 #
-# External Dependencies: numpy, matplotlib, scipy, leastsqbound, least_squares
-#                        pandas, uncertainties
+# External Dependencies: numpy, matplotlib, scipy, leastsqbound,
+#                        least_squares, pandas, uncertainties
 #########################################################################
+
+#########################
+##  BMNS Commands      ##
+#########################
+Now to run a fit from any directory just use:
+> bm -fit [input fit parameter file] [data directory] [output directory]
+> bm -genpar [directory to write out fitting script]
+> bm -thermo [BM fit.csv] [temperature, C or K]
+> bm -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]
+> bm -sim [input sim parameter file] (optional output folder name)
+> bm -gensim [directory to write out simulation input script]
+> bm -3d [simulation magnetization vectors csv]
 
 ######################
 ##   Installation   ##
@@ -72,12 +84,3 @@ Insert the following line near the bottom (editing the path for your directory)
 alias bm 'python /path/to/BMNS/BMNS.py'
 
 > source ~/.cshrc
-
-#########################
-##  BMNS Commands      ##
-#########################
-Now to run a fit from any directory just use:
-> bm -fit [input fit parameter file] [data directory] [output directory]
-> bm -thermo [BM fit.csv] [temperature, C or K]
-> bm -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]
-> bm -sim [input sim parameter file] (optional output folder name)

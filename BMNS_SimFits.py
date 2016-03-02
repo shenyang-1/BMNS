@@ -345,6 +345,8 @@ class SimFit:
     if len(self.data) != 0:
       reald = self.data[self.data[:,0].argsort()]
       reald = np.array([reald[reald[:,1] == x] for x in doffslp])
+    else:
+      reald = []
 
     ##### Start decorating plot #####
     # -- Define figure -- #
@@ -482,7 +484,9 @@ class SimFit:
     if len(self.data) != 0:
       reald = self.data[self.data[:,0].argsort()]
       reald = np.array([reald[reald[:,1] == x] for x in doffslp])
-
+    else:
+      reald = []
+      
     ##### Start decorating plot #####
     # -- Define figure -- #
     fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
@@ -645,7 +649,7 @@ class SimFit:
     ##### Start decorating plot #####
     # -- Set axes labels -- #
     plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
-    plt.ylabel(r'$R_{2}+R_{ex}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
+    plt.ylabel(r'$R_{1\rho}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
     # -- Set axes font sizes -- #
     rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
     # -- Set X-axes limits -- #

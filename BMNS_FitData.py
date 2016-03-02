@@ -658,6 +658,13 @@ class Parse:
       # First column is non-numerical, indicating a header
       #  Remove the header
       except ValueError:
+        # Check if first element is non-numerical but not folders
+        #  This is to prevent deleting first column that's not
+        #  disposable folder numbers.
+        if tData[0][0] != "Folder":
+          nodel = True
+        else:
+          nodel = False
         # Delete first row, assumed to be the header
         tData = delete(tData, 0, 0)
 
@@ -681,8 +688,10 @@ class Parse:
           #  in data array.
           # If there are, assume that column 0 is folder numbers
           if tData.shape[1] >= 5:
-            tData = delete(tData, 0, 1)
-          self.DataInp.append(tData)
+            # Check to make sure can delete first column
+            if nodel == False:
+              tData = delete(tData, 0, 1)
+            self.DataInp.append(tData)
 
         else:
           missStr += "  ERROR: Too few data rows and/or columns for ( %s )\n" % Name
