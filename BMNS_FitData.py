@@ -199,7 +199,7 @@ class GraphFit:
 
     ### Write out this data to a CSV file
     FILE = open(dataPath, "ab")
-    FILE.write("Offset,SLP,R1p,R1p err,R2eff,R2eff err,Sim R1p, Sim R2eff,Residual R1p, Residual R2eff,\n")
+    FILE.write("Offset,SLP,R1p,R1p err,R2eff,R2eff err,Sim R1p, Sim R2eff,Residual R1p, Residual R2eff\n")
     for d in mData:
       for line in d:
         FILE.write(",".join(list([str(x) for x in line])) + "\n")

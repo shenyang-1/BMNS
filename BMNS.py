@@ -503,7 +503,15 @@ def Main():
     # Write-out simulated R1rho values
     sfo.writeR1p(outPath)
     # Write-out simulated vectors and eigenvalues
+    sfo.writeSimPars(outPath)
+    # Write-out sim parameters
     sfo.writeVecVal(outVec, outPath)
+  elif "3d" in sys.argv[1].lower():
+    # Create simulation class object
+    sfo = simf.SimFit()
+    sfo.plot3DVec(sys.argv[2])
+    #VecAnimate3D(M_4)
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Tab to CSV splitter
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

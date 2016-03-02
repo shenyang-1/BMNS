@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib as mpl
 from matplotlib.backends.backend_pdf import PdfPages
-
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
 #########################################################################
@@ -63,6 +64,12 @@ class SimFit:
     self.sloff = None
     self.slon = None
     self.slonoff = None
+    # Assumes shape is NxM
+    # 0 Offset (Hz)
+    # 1 SLP (Hz)
+    # 2 R1rho
+    # 3 R1rho err
+    self.data = [] # Real R1rho data to be plotted
     self.rhoerr = 0.0 # Noise corruption pct for R1p values
     self.rhomc = 500  # Number of monte carlo iterations for noise corruption
 
@@ -70,6 +77,7 @@ class SimFit:
     self.vdlist = np.linspace(0.0, 0.25, 51)
     self.decerr = 0.0 # Noise corruption pct for intensities
     self.decmc = 500  # Number of monte carlo iterations for noise corruption
+    self.plotdec = "no" # Flag to say whether or not to plot ints decays
 
     # -- Plotting variables and their attributes -- #
     self.pltvar = {
@@ -91,7 +99,6 @@ class SimFit:
       "lf" : 0.0, # MHz
       "alignmag" : "auto", # Mag alignment
       "te" : 0.0, # Kelvin
-      "pa" : 0.0, # Probability
       "pb" : 0.0, # Probability
       "pc" : 0.0, # Probability
       "dwb" : 0.0, # ppm
@@ -140,6 +147,16 @@ class SimFit:
     np.savetxt(outR1p, self.R1pV, delimiter=',', header=r1phdr, comments='')
 
   #########################################################################
+  # writeSimPars - Writes Parameters used to simulate data
+  #########################################################################
+  def writeSimPars(self, outp):
+    outPars = os.path.join(outp, "sim-params.csv")
+    FILE = open(outPars, "wb")
+    FILE.write(",".join(self.fitpars.keys()) + "\n")
+    FILE.write(",".join([str(self.fitpars[x]) for x in self.fitpars.keys()]) + "\n")
+    FILE.close()
+
+  #########################################################################
   # plotR1p - Writes out magnetization vectors and eigenvalues
   #########################################################################
   def writeVecVal(self, outvec, outev):
@@ -155,52 +172,158 @@ class SimFit:
     np.savetxt(eigvp, self.eigVals, delimiter=',', header=hdr, comments='')
 
   #########################################################################
+  # plot3DVec - Plots 3D magnetization vectors vs. time
+  #########################################################################
+  def plot3DVec(self, external=None):
+    # If magvec does not exist internally, read externally
+    if external is not None:
+      if os.path.exists(external):
+        self.magVecs = np.genfromtxt(external, delimiter=',', skip_header=1)
+    Ma = self.magVecs[:,5:8]
+    Mb = self.magVecs[:,8:11]
+    # Normalize to Ma
+    # define scaling factor
+    sf = Ma.max(axis=0) / Mb.max(axis=0)
+    Mb = Mb * sf
+    Mc = self.magVecs[:,11:14]
+    sf = Ma.max(axis=0) / Mc.max(axis=0)
+    Mc = Mc * sf
+    if Mc[0].all() == np.zeros(3).all():
+      Mc = np.zeros(Mc.shape)
+
+    # Plot N array of 3D vectors
+    self.VecAnimate3D(np.array([Ma, Mb, Mc]))
+  #############################################
+  # Animate line trace and points at X,Y,Z in 3D Cartesian coordinate system
+  # XYZ is a N x M x O matrix containing N matrices of M depth and O=3 length
+  # Each matrix in XYZ is animated and colored
+  # Code adapted from https://jakevdp.github.io/blog/2013/02/16/animating-the-lorentz-system-in-3d/
+  #############################################
+  def VecAnimate3D(self, XYZ, AxOrient=(20.,50.), Beff=None):
+    x_t = XYZ
+    N_trajectories = x_t.shape[0]
+    
+    # Set up figure & 3D axis for animation
+    fig = plt.figure()
+    ax = fig.add_axes([0, 0, 1, 1], projection='3d')
+    ax.axis('on')
+    ax.grid(False)
+    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    # choose a different color for each trajectory
+    colors = plt.cm.jet(np.linspace(0, 1, N_trajectories))
+
+    # set up lines and points
+    lines = sum([ax.plot([], [], [], '-', linewidth=2, c=c)
+                 for c in colors], [])
+
+    pts = sum([ax.plot([], [], [], 'o', markersize=10, c=c)
+               for c in colors], [])
+
+    # prepare the axes limits
+    ax.set_xlim((-1, 1))
+    ax.set_ylim((-1, 1))
+    ax.set_zlim((-1, 1))
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    X,Y,Z = np.array([0.,0.]),np.array([0.,0.]),np.array([0.,1.])
+    Xz,Yz,Zz = np.array([0.,0.]),np.array([0.,0.]),np.array([-1.,0.])
+    X2,Y2,Z2 = np.array([-1.,1.]),np.array([0.,0.]),np.array([0.,0.])
+    X3,Y3,Z3 = np.array([0.,0.]),np.array([-1.,1.]),np.array([0.,0.])
+
+    ax.plot(X,Y,Z,'-',c='black')
+    ax.plot(X2,Y2,Z2,'-',c='black')
+    ax.plot(X3,Y3,Z3,'-',c='black')
+    ax.plot(Xz,Yz,Zz,'-.',c='black')
+
+  #     set point-of-view: specified by (altitude degrees, azimuth degrees)
+    ax.view_init(*AxOrient)
+
+    # initialization function: plot the background of each frame
+    def init():
+      for line, pt in zip(lines, pts):
+          line.set_data([], [])
+          line.set_3d_properties([])
+
+          pt.set_data([], [])
+          pt.set_3d_properties([])
+      return lines + pts
+
+    # animation function.  This will be called sequentially with the frame number
+    def animate(i):
+  #     we'll step two time-steps per frame.  This leads to nice results.
+      i = (2 * i) % x_t.shape[1]
+
+      for line, pt, xi in zip(lines, pts, x_t):
+          x, y, z = xi[:i].T
+          line.set_data(x, y)
+          line.set_3d_properties(z)
+
+          pt.set_data(x[-1:], y[-1:])
+          pt.set_3d_properties(z[-1:])
+
+#         ax.view_init(30, 0.3 * i) ## Increment view
+      fig.canvas.draw()
+      return lines + pts
+
+    anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                   frames=x_t.shape[1], interval=30, blit=False)
+    plt.show()
+  #########################################################################
   # plotDec - Plots monoexponential decays
   #########################################################################
   def plotDec(self, figp):
-    # output path
-    figp = os.path.join(figp, "sim-decaycurves.pdf")
-    # Define PDFPages object for multipage decay plots
-    pp = PdfPages(figp)
+    if self.plotdec == "yes":
+      # output path
+      figp = os.path.join(figp, "sim-decaycurves.pdf")
+      # Define PDFPages object for multipage decay plots
+      pp = PdfPages(figp)
 
-    for n, d in zip(self.R1pV, self.magVecs):
-      # Values of R1p/R1rho_err for sim fit line and title
-      A, R1p, R1p_err = n[6], n[2], n[3]
-      of, sl = n[0], n[1]
-      # -- Define figure -- #
-      fig = plt.figure()
-      plt.errorbar(d[:,14], d[:,0], yerr=d[:,1], fmt='o')
-      # Simulate x-values for plotting trendline
-      if 101 < len(d[:,14]):
-        simX = np.linspace(d[:,14].min(), d[:,14].max(), 51)
-      else:
-        simX = d[:,14]
-      # Plot simulated trend-line
-      plt.plot(simX, sim.ExpDecay(simX, A, R1p), c='red')
-      # Define plot limits
-      plt.xlim(0.0, d[:,14].max()*1.05)
-      plt.ylim(0.0, 1.1)
-      # # -- Set a title -- #
-      plt.title(r'$R_{1\rho}=%0.1f\pm%0.1f\,s^{-1}\quad\omega_1=%0.0f\,Hz\quad\Omega_{eff}=%0.0f\,Hz$'
-                % (R1p, R1p_err, sl, of), size=16)
-      # -- Set axes labels -- #
-      plt.xlabel(r'$Seconds$', size=self.pltvar['label_fs'][0])
-      plt.ylabel(r'$Intensity$', size=self.pltvar['label_fs'][1])
-      # -- Set axes font sizes -- #
-      rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
-      pp.savefig()
-      plt.close(fig)
-      plt.clf()
-
-    pp.close()
+      for n, d in zip(self.R1pV, self.magVecs):
+        # Values of R1p/R1rho_err for sim fit line and title
+        A, R1p, R1p_err = n[6], n[2], n[3]
+        of, sl = n[0], n[1]
+        # -- Define figure -- #
+        fig = plt.figure()
+        plt.errorbar(d[:,14], d[:,0], yerr=d[:,1], fmt='o')
+        # Simulate x-values for plotting trendline
+        if 101 < len(d[:,14]):
+          simX = np.linspace(d[:,14].min(), d[:,14].max(), 51)
+        else:
+          simX = d[:,14]
+        # Plot simulated trend-line
+        plt.plot(simX, sim.ExpDecay(simX, A, R1p), c='red')
+        # Define plot limits
+        plt.xlim(0.0, d[:,14].max()*1.05)
+        plt.ylim(0.0, 1.1)
+        # # -- Set a title -- #
+        plt.title(r'$R_{1\rho}=%0.1f\pm%0.1f\,s^{-1}\quad\omega_1=%0.0f\,Hz\quad\Omega_{eff}=%0.0f\,Hz$'
+                  % (R1p, R1p_err, sl, of), size=16)
+        # -- Set axes labels -- #
+        plt.xlabel(r'$Seconds$', size=self.pltvar['label_fs'][0])
+        plt.ylabel(r'$Intensity$', size=self.pltvar['label_fs'][1])
+        # -- Set axes font sizes -- #
+        rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+        pp.savefig()
+        plt.close(fig)
+        plt.clf()
+      # Close pdfpage
+      pp.close()
   #########################################################################
   # plotR1p - Plots R1rho values
   #########################################################################
   def plotR1p(self, figp):
     # Find unique SLPs for on/off-res
     if self.sloff is not None:
-      uoffslp = sorted(list(set(self.sloff[:,1])))
-
+      if len(self.data) > 0:
+        cslp = sorted(list(set(self.sloff[:,1]) | set(self.data[:,1])))
+        uoffslp = sorted(list(set(self.sloff[:,1])))
+        doffslp = sorted(list(set(self.data[:,1])))
+      else:
+        uoffslp = sorted(list(set(self.sloff[:,1])))
+      
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.sans-serif'] = 'arial'
     # # Remove onres values from self.R1pV array
@@ -211,6 +334,13 @@ class SimFit:
     # Split (N, 7) array in to a (M, N, 7) array, where
     #  M = unique offsets
     offv = np.array([offv[offv[:,1] == x] for x in uoffslp])
+    # Repeat trim for real data
+    # NOTE: this could mean that real data is missing from plot if
+    #       simulated SLPs don't overlap with it's own SLPs
+    if len(self.data) != 0:
+      reald = self.data[self.data[:,0].argsort()]
+      reald = np.array([reald[reald[:,1] == x] for x in doffslp])
+
     ##### Start decorating plot #####
     # -- Define figure -- #
     fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
@@ -218,21 +348,36 @@ class SimFit:
     # -- Define Colormap -- #
     colormap = plt.cm.jet
     plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 1, offv.shape[0])])
+    cdict = {}
+    lincolor = np.linspace(0, 1, len(cslp))
+    for c,i in zip(lincolor, cslp):
+      cdict[i] = colormap(c)
 
-    # -- Start plotting -- #
+    # -- Start plotting simulated data-- #
     for n in offv:
       of = n[:,0]/1e3
       if self.pltvar['plot'] == "symbol":
-        plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]), c=cdict[n[0][1]])
+
       elif self.pltvar['plot'] == "line":
         plt.plot(of, n[:,2], self.pltvar['line'][0],
-                 linewidth=self.pltvar['line'][1], label=int(n[2][1]))
+                 linewidth=self.pltvar['line'][1], label=int(n[0][1]),
+                 c=cdict[n[0][1]])
       elif self.pltvar['plot'] == "both":
         plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
-                 markersize=self.pltvar['symbol'][1], label=int(n[2][1]))
+                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]),
+                 c=cdict[n[0][1]])
         plt.plot(of, n[:,2], self.pltvar['line'][0],
                  linewidth=self.pltvar['line'][1], c=plot[0].get_color())
+    # -- Start plotting real data-- #
+    if len(reald) != 0:
+      for n in reald:
+        of = n[:,0]/1e3
+        plot = plt.errorbar(of, n[:,2], yerr=n[:,3], fmt=self.pltvar['symbol'][0],
+                 markersize=self.pltvar['symbol'][1], label=int(n[0][1]),
+                 c=cdict[n[0][1]])
+
     ##### Start decorating plot #####
     # # -- Set a title -- #
     # plt.title(r'$R_{1\rho}$', size=18)
@@ -502,6 +647,13 @@ class SimFit:
           self.decmc = int(i[1])
         except ValueError:
           bme.HandleErrors(True, "\nNo/bad MC num defined for error corruption of decay sim\n")
+      # Flag for plotting decaying intensity
+      elif i[0].lower() == "plotdec" and len(i) == 2:
+        self.plotdec = i[1].lower()
+        # Reset flag to no if not properly defined
+        if self.plotdec != "no" and self.plotdec != "yes":
+          self.plotdec = "no"
+          print "\nFlag to plot decaying intensities not properly defined."
       # Generate vdlist from lower/upper bounds
       elif i[0].lower() == "vdlist":
         if len(i) == 4:
@@ -657,7 +809,7 @@ class SimFit:
       #  Here col0 = offsets (Hz) and col1 = SLP (Hz)
       if i[0].lower() == "read":
         # If read flag is defined as a value as non-false
-        if len(i) >= 2 and i[1].lower() != "false":
+        if len(i) >= 2:
           readPath = os.path.join(self.curDir, i[1])
           # Check to make sure SLPOffs csv exists, if not just ignore.
           if not os.path.isfile(readPath):
@@ -671,6 +823,23 @@ class SimFit:
             # Split to on-res vs offres
             self.sloff = rawsloff[rawsloff[:,0] != 0.]
             self.slon = rawsloff[rawsloff[:,0] == 0.]
+      # Read in real R1rho values and errors to be plotted along with sim lines
+      elif i[0].lower() == "data":
+        if len(i) >= 2:
+          dataPath = os.path.join(self.curDir, i[1])
+          # Check to make sure data csv exists, if not just ignore.
+          if not os.path.isfile(dataPath):
+            bme.HandleErrors(True, "\nData path is defined but does not exist.\n %s\n" % dataPath)
+          else:
+            # Read csv to numpy array
+            reald = np.genfromtxt(dataPath, dtype=float, delimiter=',')
+            # Strip nan values
+            self.data = reald[~np.isnan(reald).any(axis=1)]
+            if self.data.shape[0] < 1 and self.data.shape[1] < 4:
+              bme.HandleErrors(True, "\nData size is incorrect\n")
+        else:
+          bme.HandleErrors(True, "\nData path called but not defined.\n")
+
       # Generate on-res SLPs
       elif i[0].lower() == "on" and len(i) >= 4:
         # Check that lower, upper, and N are numbers
