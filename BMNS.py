@@ -20,6 +20,7 @@ import BMNS_Errors as bme
 import BMNS_AMPGO as ampgo  # Global fitting
 import BMNS_MathFuncs as mf
 import BMNS_Stats as sf
+import BMNS_PlotMisc as pm
 ### Direct numpy imports ###
 from numpy import absolute, array, asarray
 from numpy import diag
@@ -643,6 +644,17 @@ def Main():
       FILE.write(line)
     FILE.close()
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Plot brute-force graphs
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #  arg1 '-plotbrute'
+  #  arg2 Brute-force parameter plot
+  #  arg3 Parameter name 1
+  #  arg4 Parameter name 2
+  #---------------------------------------------------
+  elif sys.argv[1].lower() == "-plotbrute":
+    pm.PlotBrute(sys.argv, curDir)
+    
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Generate Example Simulation Input file
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

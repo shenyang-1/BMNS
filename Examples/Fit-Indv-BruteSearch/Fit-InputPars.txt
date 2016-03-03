@@ -76,9 +76,9 @@ AlignMag Auto
 #Trelax 0.0005 0.5
 #x-axis -2000 2000
 #y-axis 0 50
-pB$ 0.05 1e-6 1e-1 6
+pB$ 0.05 1e-3 1e-0 8
 pC! 0.0 1e-6 0.5
-dwB@ 3.0 1 10 10
+dwB@ 3.0 1 8 8
 dwC! 0.0 -80 80
 kexAB 1000. 1000. 50000.
 kexAC! 0.0 1. 50000.

@@ -1,9 +1,9 @@
-Iterates over pB in log space from 1e-6 to 1e-1 in 6 log increments
-- pB$ 0.05 1e-6 1e-1 6
-Iterates over kexAB in linear space from 1 to 10 in 1ppm increments
-- dwB@ 3.0 1 10 10
+Iterates over pB in log space from 1e-3 to 1e-0 in 8 log increments
+- pB$ 0.05 1e-3 1e-0 8
+Iterates over kexAB in linear space from 1 to 8 in 1ppm linear increments
+- dwB@ 3.0 1 8 8
 
-This is 10*6 combinations.
+This is 8*8 combinations.
 
 Finds combination of pB and dwB with lowest red. chi-2 and begins a fit
 from there to minimize all free parameters from there.

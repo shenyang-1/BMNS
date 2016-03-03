@@ -9,6 +9,7 @@
 # Numnpy imports
 from numpy import array, asanyarray
 from numpy import diag
+from numpy import log10
 from numpy import outer
 from numpy import sqrt
 # Scipy Scientific constants
@@ -20,6 +21,18 @@ from scipy.constants import calorie # cal
 # Uncertainties calculations
 from uncertainties import umath
 from uncertainties import ufloat
+
+
+#---------------------------#---------------------------#
+# 'OrdMag' takes in two values and calculates the orders
+#  of magnitude difference between them.
+#---------------------------#---------------------------#
+def OrdMag(A, B):
+    maxV, minV = A, B
+    if maxV < minV:
+        minV, maxV = maxV, minV
+    
+    return log10(maxV/minV)
 
 #---------------------------#---------------------------#
 # 'CalcRateTau' Takes in populations and exchange rates
