@@ -1,0 +1,488 @@
+Fit #1
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,15.589
+dwB (ppm),1.00,87058.31
+kexAB (s^-1),1000,91131148
+R1 (s^-1),2.50,3.26
+R2 (s^-1),16.00,10.16
+Red. Chi-sq,258.58
+Fit #2
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,3.687
+dwB (ppm),2.00,44029.23
+kexAB (s^-1),1000,54281249
+R1 (s^-1),2.50,3.41
+R2 (s^-1),16.00,10.72
+Red. Chi-sq,258.58
+Fit #3
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,2.371
+dwB (ppm),3.00,32340.13
+kexAB (s^-1),1000,44699026
+R1 (s^-1),2.50,3.50
+R2 (s^-1),16.00,12.12
+Red. Chi-sq,258.58
+Fit #4
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,2.612
+dwB (ppm),4.00,27991.55
+kexAB (s^-1),1000,44626799
+R1 (s^-1),2.50,3.47
+R2 (s^-1),16.00,11.91
+Red. Chi-sq,258.57
+Fit #5
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,3.808
+dwB (ppm),5.00,26006.60
+kexAB (s^-1),1000,56971134
+R1 (s^-1),2.50,3.46
+R2 (s^-1),16.00,12.97
+Red. Chi-sq,258.57
+Fit #6
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,3.835
+dwB (ppm),6.00,27792.99
+kexAB (s^-1),1000,54599296
+R1 (s^-1),2.50,3.46
+R2 (s^-1),16.00,12.86
+Red. Chi-sq,258.57
+Fit #7
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,4.960
+dwB (ppm),7.00,27924.95
+kexAB (s^-1),1000,65475960
+R1 (s^-1),2.50,3.44
+R2 (s^-1),16.00,12.65
+Red. Chi-sq,258.57
+Fit #8
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,6.056
+dwB (ppm),8.00,31150.80
+kexAB (s^-1),1000,75755985
+R1 (s^-1),2.50,3.39
+R2 (s^-1),16.00,12.01
+Red. Chi-sq,258.57
+Fit #9
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,7.585
+dwB (ppm),9.00,34385.01
+kexAB (s^-1),1000,91252002
+R1 (s^-1),2.50,3.34
+R2 (s^-1),16.00,11.85
+Red. Chi-sq,258.57
+Fit #10
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.000,10.546
+dwB (ppm),10.00,36479.70
+kexAB (s^-1),1000,123320895
+R1 (s^-1),2.50,3.36
+R2 (s^-1),16.00,12.46
+Red. Chi-sq,258.57
+Fit #11
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,19.506
+dwB (ppm),1.00,10910.47
+kexAB (s^-1),1000,18150797
+R1 (s^-1),2.50,3.28
+R2 (s^-1),16.00,11.60
+Red. Chi-sq,258.57
+Fit #12
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,3.881
+dwB (ppm),2.00,4424.08
+kexAB (s^-1),1000,6829034
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,12.43
+Red. Chi-sq,258.55
+Fit #13
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,2.413
+dwB (ppm),3.00,3245.82
+kexAB (s^-1),1000,4665065
+R1 (s^-1),2.50,3.45
+R2 (s^-1),16.00,12.62
+Red. Chi-sq,258.52
+Fit #14
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,2.846
+dwB (ppm),4.00,2809.45
+kexAB (s^-1),1000,4998788
+R1 (s^-1),2.50,3.47
+R2 (s^-1),16.00,12.93
+Red. Chi-sq,258.50
+Fit #15
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,4.018
+dwB (ppm),5.00,2594.01
+kexAB (s^-1),1000,6069365
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,13.74
+Red. Chi-sq,258.49
+Fit #16
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,3.941
+dwB (ppm),6.00,2791.56
+kexAB (s^-1),1000,5579680
+R1 (s^-1),2.50,3.41
+R2 (s^-1),16.00,12.69
+Red. Chi-sq,258.48
+Fit #17
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,5.511
+dwB (ppm),7.00,2824.71
+kexAB (s^-1),1000,7283807
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,13.20
+Red. Chi-sq,258.48
+Fit #18
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,6.710
+dwB (ppm),8.00,3104.01
+kexAB (s^-1),1000,8410437
+R1 (s^-1),2.50,3.38
+R2 (s^-1),16.00,12.82
+Red. Chi-sq,258.48
+Fit #19
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,8.934
+dwB (ppm),9.00,3406.04
+kexAB (s^-1),1000,10758493
+R1 (s^-1),2.50,3.36
+R2 (s^-1),16.00,13.00
+Red. Chi-sq,258.48
+Fit #20
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.001,12.428
+dwB (ppm),10.00,3586.37
+kexAB (s^-1),1000,14517298
+R1 (s^-1),2.50,3.34
+R2 (s^-1),16.00,13.74
+Red. Chi-sq,258.48
+Fit #21
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,19.415
+dwB (ppm),1.00,1091.11
+kexAB (s^-1),1000,1853501
+R1 (s^-1),2.50,3.30
+R2 (s^-1),16.00,11.93
+Red. Chi-sq,258.47
+Fit #22
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,3.883
+dwB (ppm),2.00,442.12
+kexAB (s^-1),1000,686459
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,12.47
+Red. Chi-sq,258.23
+Fit #23
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,2.413
+dwB (ppm),3.00,324.03
+kexAB (s^-1),1000,466310
+R1 (s^-1),2.50,3.46
+R2 (s^-1),16.00,12.59
+Red. Chi-sq,257.98
+Fit #24
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,2.847
+dwB (ppm),4.00,280.69
+kexAB (s^-1),1000,500032
+R1 (s^-1),2.50,3.47
+R2 (s^-1),16.00,12.92
+Red. Chi-sq,257.79
+Fit #25
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,4.012
+dwB (ppm),5.00,258.91
+kexAB (s^-1),1000,605199
+R1 (s^-1),2.50,3.43
+R2 (s^-1),16.00,13.66
+Red. Chi-sq,257.67
+Fit #26
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,3.956
+dwB (ppm),6.00,278.40
+kexAB (s^-1),1000,559971
+R1 (s^-1),2.50,3.41
+R2 (s^-1),16.00,12.70
+Red. Chi-sq,257.60
+Fit #27
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,5.547
+dwB (ppm),7.00,281.28
+kexAB (s^-1),1000,733777
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,13.30
+Red. Chi-sq,257.58
+Fit #28
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,6.744
+dwB (ppm),8.00,309.34
+kexAB (s^-1),1000,846129
+R1 (s^-1),2.50,3.38
+R2 (s^-1),16.00,12.91
+Red. Chi-sq,257.57
+Fit #29
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,8.934
+dwB (ppm),9.00,339.21
+kexAB (s^-1),1000,1076284
+R1 (s^-1),2.50,3.36
+R2 (s^-1),16.00,13.03
+Red. Chi-sq,257.58
+Fit #30
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.010,12.508
+dwB (ppm),10.00,358.07
+kexAB (s^-1),1000,1461016
+R1 (s^-1),2.50,3.33
+R2 (s^-1),16.00,13.78
+Red. Chi-sq,257.60
+Fit #31
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,19.371
+dwB (ppm),1.00,108.78
+kexAB (s^-1),1000,184841
+R1 (s^-1),2.50,3.29
+R2 (s^-1),16.00,11.88
+Red. Chi-sq,257.50
+Fit #32
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,3.856
+dwB (ppm),2.00,43.90
+kexAB (s^-1),1000,68213
+R1 (s^-1),2.50,3.40
+R2 (s^-1),16.00,12.40
+Red. Chi-sq,255.10
+Fit #33
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,2.388
+dwB (ppm),3.00,32.02
+kexAB (s^-1),1000,46149
+R1 (s^-1),2.50,3.42
+R2 (s^-1),16.00,12.46
+Red. Chi-sq,252.63
+Fit #34
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,2.807
+dwB (ppm),4.00,27.65
+kexAB (s^-1),1000,49287
+R1 (s^-1),2.50,3.43
+R2 (s^-1),16.00,12.74
+Red. Chi-sq,250.76
+Fit #35
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,3.949
+dwB (ppm),5.00,25.46
+kexAB (s^-1),1000,59551
+R1 (s^-1),2.50,3.37
+R2 (s^-1),16.00,13.45
+Red. Chi-sq,249.56
+Fit #36
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,3.887
+dwB (ppm),6.00,27.34
+kexAB (s^-1),1000,55019
+R1 (s^-1),2.50,3.35
+R2 (s^-1),16.00,12.48
+Red. Chi-sq,248.90
+Fit #37
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,5.454
+dwB (ppm),7.00,27.61
+kexAB (s^-1),1000,72138
+R1 (s^-1),2.50,3.36
+R2 (s^-1),16.00,13.07
+Red. Chi-sq,248.64
+Fit #38
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,6.630
+dwB (ppm),8.00,30.36
+kexAB (s^-1),1000,83168
+R1 (s^-1),2.50,3.32
+R2 (s^-1),16.00,12.70
+Red. Chi-sq,248.62
+Fit #39
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,8.786
+dwB (ppm),9.00,33.31
+kexAB (s^-1),1000,105828
+R1 (s^-1),2.50,3.30
+R2 (s^-1),16.00,12.81
+Red. Chi-sq,248.72
+Fit #40
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),0.100,12.300
+dwB (ppm),10.00,35.17
+kexAB (s^-1),1000,143647
+R1 (s^-1),2.50,3.28
+R2 (s^-1),16.00,13.55
+Red. Chi-sq,248.87
+Fit #41
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,18.900
+dwB (ppm),1.00,10.56
+kexAB (s^-1),1000,18253
+R1 (s^-1),2.50,3.23
+R2 (s^-1),16.00,11.65
+Red. Chi-sq,248.02
+Fit #42
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,3.593
+dwB (ppm),2.00,4.08
+kexAB (s^-1),1000,6418
+R1 (s^-1),2.50,3.20
+R2 (s^-1),16.00,11.65
+Red. Chi-sq,225.20
+Fit #43
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,2.129
+dwB (ppm),3.00,2.83
+kexAB (s^-1),1000,4125
+R1 (s^-1),2.50,3.06
+R2 (s^-1),16.00,11.15
+Red. Chi-sq,202.50
+Fit #44
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,2.417
+dwB (ppm),4.00,2.36
+kexAB (s^-1),1000,4234
+R1 (s^-1),2.50,2.94
+R2 (s^-1),16.00,10.96
+Red. Chi-sq,185.79
+Fit #45
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,3.334
+dwB (ppm),5.00,2.12
+kexAB (s^-1),1000,5015
+R1 (s^-1),2.50,2.82
+R2 (s^-1),16.00,11.32
+Red. Chi-sq,175.76
+Fit #46
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,3.226
+dwB (ppm),6.00,2.25
+kexAB (s^-1),1000,4559
+R1 (s^-1),2.50,2.77
+R2 (s^-1),16.00,10.37
+Red. Chi-sq,171.09
+Fit #47
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,4.541
+dwB (ppm),7.00,2.26
+kexAB (s^-1),1000,5995
+R1 (s^-1),2.50,2.77
+R2 (s^-1),16.00,10.85
+Red. Chi-sq,170.25
+Fit #48
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,5.528
+dwB (ppm),8.00,2.50
+kexAB (s^-1),1000,6924
+R1 (s^-1),2.50,2.74
+R2 (s^-1),16.00,10.57
+Red. Chi-sq,171.42
+Fit #49
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,7.359
+dwB (ppm),9.00,2.76
+kexAB (s^-1),1000,8852
+R1 (s^-1),2.50,2.74
+R2 (s^-1),16.00,10.72
+Red. Chi-sq,173.29
+Fit #50
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),1.000,10.375
+dwB (ppm),10.00,2.93
+kexAB (s^-1),1000,12101
+R1 (s^-1),2.50,2.74
+R2 (s^-1),16.00,11.41
+Red. Chi-sq,175.30
+Fit #51
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,15.138
+dwB (ppm),1.00,0.79
+kexAB (s^-1),1000,1639
+R1 (s^-1),2.50,2.71
+R2 (s^-1),16.00,9.78
+Red. Chi-sq,175.36
+Fit #52
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,1.866
+dwB (ppm),2.00,0.21
+kexAB (s^-1),1000,367
+R1 (s^-1),2.50,1.79
+R2 (s^-1),16.00,6.56
+Red. Chi-sq,70.83
+Fit #53
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,1.021
+dwB (ppm),3.00,0.12
+kexAB (s^-1),1000,199
+R1 (s^-1),2.50,1.50
+R2 (s^-1),16.00,5.51
+Red. Chi-sq,49.56
+Fit #54
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,1.576
+dwB (ppm),4.00,0.14
+kexAB (s^-1),1000,268
+R1 (s^-1),2.50,1.88
+R2 (s^-1),16.00,7.13
+Red. Chi-sq,78.88
+Fit #55
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,3.431
+dwB (ppm),5.00,0.19
+kexAB (s^-1),1000,501
+R1 (s^-1),2.50,2.67
+R2 (s^-1),16.00,11.41
+Red. Chi-sq,166.30
+Fit #56
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,4.395
+dwB (ppm),6.00,0.28
+kexAB (s^-1),1000,610
+R1 (s^-1),2.50,3.64
+R2 (s^-1),16.00,14.39
+Red. Chi-sq,315.61
+Fit #57
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,7.896
+dwB (ppm),7.00,0.34
+kexAB (s^-1),1000,1020
+R1 (s^-1),2.50,4.40
+R2 (s^-1),16.00,18.64
+Red. Chi-sq,469.99
+Fit #58
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,10.470
+dwB (ppm),8.00,0.44
+kexAB (s^-1),1000,1288
+R1 (s^-1),2.50,5.02
+R2 (s^-1),16.00,20.33
+Red. Chi-sq,614.41
+Fit #59
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,14.318
+dwB (ppm),9.00,0.52
+kexAB (s^-1),1000,1695
+R1 (s^-1),2.50,5.54
+R2 (s^-1),16.00,21.64
+Red. Chi-sq,720.95
+Fit #60
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),10.000,19.729
+dwB (ppm),10.00,0.58
+kexAB (s^-1),1000,2267
+R1 (s^-1),2.50,6.11
+R2 (s^-1),16.00,23.02
+Red. Chi-sq,790.06
+Fit #61
+dG6C1p-mc Pars,Fit Value,Error
+pB (%),5.912,0.077
+dwB (ppm),4.41,0.01
+kexAB (s^-1),1120,25
+R1 (s^-1),1.61,0.09
+R2 (s^-1),13.25,0.38
+Red. Chi-sq,0.19

@@ -1,0 +1,12 @@
+Iterates over pB in log space from 1e-6 to 1e-1 in 6 log increments
+- pB$ 0.05 1e-6 1e-1 6
+Iterates over kexAB in linear space from 1 to 10 in 1ppm increments
+- dwB@ 3.0 1 10 10
+
+This is 10*6 combinations.
+
+Finds combination of pB and dwB with lowest red. chi-2 and begins a fit
+from there to minimize all free parameters from there.
+
+Run:
+bm -fit Fit-InputPars.txt . Test-Indv-BruteSearch/
