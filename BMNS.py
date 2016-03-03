@@ -473,7 +473,7 @@ def Main():
   #  arg2 Parameter Text File
   #  arg3 (Optional) Specific output folder, will be made if does not exist
   #-----------------------------------------------------------------------#
-  elif sys.argv[1].lower() == "sim":
+  elif sys.argv[1].lower() == "-sim":
     # Create parent output directory
     if len(sys.argv) >= 4:
       outPath = os.path.join(curDir, sys.argv[3])
@@ -654,7 +654,7 @@ def Main():
   #---------------------------------------------------
   elif sys.argv[1].lower() == "-plotbrute":
     pm.PlotBrute(sys.argv, curDir)
-    
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Generate Example Simulation Input file
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

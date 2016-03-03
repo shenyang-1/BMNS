@@ -8,5 +8,8 @@ This is 8*8 combinations.
 Finds combination of pB and dwB with lowest red. chi-2 and begins a fit
 from there to minimize all free parameters from there.
 
-Run:
+To brute-force fit, run:
 bm -fit Fit-InputPars.txt . Test-Indv-BruteSearch/
+
+To generate chi^2 contour plots:
+bm -plotbrute Output-Indv-BruteSearch/LocalFits_dG6C1p-mc.csv pb dwb

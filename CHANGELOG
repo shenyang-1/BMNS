@@ -12,6 +12,7 @@ Mar 03 2016
 - Changed coloring method for plots so no repeating colors if number of spin lock powers is more than 8.
 - Fixed brute-force parameter search so that all free parameters are fitted
 	after lowest red. chi-sq is found from brute-search of N-parameter space.
+- Can now create contour plots of brute-forced parameters from the fit csv file.
 
 Feb 29 2016
 ************
