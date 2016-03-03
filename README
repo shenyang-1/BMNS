@@ -19,6 +19,11 @@ Now to run a fit from any directory just use:
 > bm -3d [simulation magnetization vectors csv]
 
 ######################
+##   Example Fits   ##
+######################
+See local directory 'Examples' for different fit examples.
+
+######################
 ##   Installation   ##
 ######################
 
@@ -45,12 +50,6 @@ From terminal:
 
 If package(s) are already installed, make sure each is up-to-date:
 > sudo pip install --upgrade numpy matplotlib scipy pandas uncertainties leastsqbound
-
-######################
-##   Testing Fits   ##
-######################
-From directory of BMNS enter the following in the terminal
-> python BMNS.py -fit Example/1-run1_Model1.txt Example/ TestFit/
 
 #########################
 ##  Creating an Alias  ##

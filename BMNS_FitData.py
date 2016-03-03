@@ -67,6 +67,15 @@ class GraphFit:
     # Get all offset spinlock powers
     #  Ignore on-resonance points
     cvals = sorted(list(set([x for x,y in zip(ob.R1pD[:,1],ob.R1pD[:,0]) if y != 0.0])))
+    # -- Define Colormap -- #
+    colormap = plt.cm.jet
+    # Create a dictionary of colormap objects, each unique SLP assigned to its own color
+    cdict = {}
+    # Generate span of colors over all unique slps
+    lincolor = linspace(0, 1, len(cvals))
+    for c,i in zip(lincolor, cvals):
+      cdict[i] = colormap(c)
+
     # Get offset min and max values and add 5%
     offmin, offmax = min(ob.R1pD[:,0])*1.05, max(ob.R1pD[:,0])*1.05
 
@@ -212,10 +221,12 @@ class GraphFit:
 
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
+      # Define current SLP
+      slp = i[0][1]
       ## Up-Left : R1rho plot
         # Plot R1rho with error bars
       # plot1 = ax[0,0].plot(j[:,0]/1e3, j[:,1])
-      plot1 = ax[0,0].errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o')
+      plot1 = ax[0,0].errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o', c=cdict[slp])
         # Plot R1rho trendlines
       ax[0,0].plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(i[0][1]))
       ax[0,0].set_title(r'$R_{1\rho}\,\mathrm{ Plot}\,|\,\overline{\chi}^2\,%.2f$'
@@ -235,7 +246,7 @@ class GraphFit:
       ## Up-Right : R2eff plot
         # Plot R2eff with error bars
       # plot2 = ax[0,1].errorbar(j[:,0]/1e3, j[:,2])
-      plot2 = ax[0,1].errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o')
+      plot2 = ax[0,1].errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o', c=cdict[slp])
         # Plot R2eff trendlines
       ax[0,1].plot(j[:,0]/1e3, j[:,2], c=plot2[0].get_color())
       ax[0,1].set_title(r'$R_2+R_{ex}\,\mathrm{ Plot}$', size=18)
@@ -268,8 +279,9 @@ class GraphFit:
     fig2, ax2 = plt.subplots(1,1, figsize=(8,6), dpi=80)
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
-      # plot1 = ax2.errorbar(j[:,0]/1e3, j[:,2])
-      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o')
+      # Define current SLP
+      slp = i[0][1]
+      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o', c=cdict[slp])
         # Plot R2eff trendlines
       ax2.plot(j[:,0]/1e3, j[:,2], c=plot1[0].get_color(), label = int(i[0][1]))
       
@@ -305,8 +317,9 @@ class GraphFit:
     fig2, ax2 = plt.subplots(1,1, figsize=(8,6), dpi=80)
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
-      # plot1 = ax2.errorbar(j[:,0]/1e3, j[:,2])
-      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o')
+      # Define current SLP
+      slp = i[0][1]
+      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o', c=cdict[slp])
         # Plot R1rho trendlines
       ax2.plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(i[0][1]))
 

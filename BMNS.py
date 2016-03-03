@@ -506,6 +506,14 @@ def Main():
     sfo.writeSimPars(outPath)
     # Write-out sim parameters
     sfo.writeVecVal(outVec, outPath)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # 3D Magnetization Visualization
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #  arg1 '-3d'
+  #  arg2 Magnetization vector CSV from simulation
+  # Plots the 3D decay of coherence
+  #---------------------------------------------------    
   elif "3d" in sys.argv[1].lower():
     # Create simulation class object
     sfo = simf.SimFit()
@@ -539,7 +547,6 @@ def Main():
   # This will compare the first row of each model csv
   #  to each other model to calculate best fit model
   #---------------------------------------------------
-
   elif sys.argv[1].lower() == "-compare":
     paths = []
     # Get all fit models
@@ -553,6 +560,7 @@ def Main():
       sf.CompareModels(paths)
     else:
       print "Not enough models to compare."
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Calculate thermodynamic parameters from fit file
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
