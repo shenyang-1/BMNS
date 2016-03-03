@@ -3,13 +3,15 @@
 #  Isaac Kimsey
 #########################################################################
 
-Mar 02 2016
+Mar 03 2016
 ************
 - Can now directly simulate decaying magnetization and R1rho values at given
   spinlock powers and offsets. Both simulated magnetization and R1rho values
   can be noise corrupted.
 - Magnetization vectors can be animated in 3D.
 - Changed coloring method for plots so no repeating colors if number of spin lock powers is more than 8.
+- Fixed brute-force parameter search so that all free parameters are fitted
+	after lowest red. chi-sq is found from brute-search of N-parameter space.
 
 Feb 29 2016
 ************
