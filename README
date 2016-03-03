@@ -11,7 +11,7 @@
 #########################
 Now to run a fit from any directory just use:
 > bm -fit [input fit parameter file] [data directory] [output directory]
-> bm -genpar [directory to write out fitting script]
+> bm -genpar [directory to write out fitting script] (optional R1p data filename)
 > bm -thermo [BM fit.csv] [temperature, C or K]
 > bm -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]
 > bm -sim [input sim parameter file] (optional output folder name)

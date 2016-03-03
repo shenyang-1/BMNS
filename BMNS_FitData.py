@@ -1202,7 +1202,8 @@ class Global():
           # Append this array to the brute-force master array
           bruteArry.append(tArry)
       else:
-        bruteArry.append([par[0]])
+        bruteArry.append(array([par[0]]))
+
     self.brutegP0 = asarray(list(it.product(*bruteArry)))
 
     # Generate global bounds list based on bounds in self.keygP0
