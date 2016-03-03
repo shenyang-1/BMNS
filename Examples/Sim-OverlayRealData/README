@@ -1,0 +1,6 @@
+Simulates R1rho values over-top of real R1rho/R2eff data that was read in from a BM fit.
+Real data is read in from the RealData.csv file.
+Fitted parameters are read in from the BMfit.csv file.
+
+Run:
+bm -sim BMNS-SimParams.txt

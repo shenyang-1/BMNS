@@ -1,0 +1,4 @@
+Simulates and plots un-corrupted R1rho values and plots.
+
+Run:
+bm -sim BMNS-SimParams.txt

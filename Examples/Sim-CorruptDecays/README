@@ -1,0 +1,7 @@
+Simulates noise-corrupted decaying magnetization, fits decaying magnetization MC-num of times to get error corrupted R1rho.
+Similar to the manner in which R1rho error is estimated experimentally from noisy decays.
+
+Also plots monoexponential decays.
+
+Run:
+bm -sim BMNS-SimParams.txt

@@ -1,0 +1,5 @@
+Simulates R1rho values and directly error-corrupts them MCnum of times.
+This is different from error corrupting the monoexponential decays.
+
+Run:
+bm -sim BMNS-SimParams.txt
