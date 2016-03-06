@@ -240,9 +240,9 @@ def Main():
           if gl.gFitEqn == "bm":
             # If error in value, residual matrix = (f(x) - obs) / err
             if len(R1p_e) > 1:
-              resid += [((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
+              resid += [(absolute(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
                              for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
-            
+
             # If no error in value, residual matrix = f(x) - obs
             else:
                resid += [(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)

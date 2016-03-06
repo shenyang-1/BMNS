@@ -130,7 +130,6 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
       uOmega3 = uOmega1 + dwC # (rad/sec)
       uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 # Resonance Offset (rad/sec) wrt GS
                                                           # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
-
       # Offsets wrt GS
       uOmega2 = uOmega2 - uOmega1                                                
       uOmega3 = uOmega3 - uOmega1  
@@ -208,7 +207,7 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
     uOmega3 = uOmega1 + dwC # (rad/sec)
     uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 #Average Resonance Offset (rad/sec)
                                                    # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
-        
+   
     # Calculate resonance offset from the carrier (wrf, ie. spinlock offset)
     # delta(uOmega) = uOmega-bar - lOmega_rf (rad/s)
     # All values in rad/sec
@@ -247,12 +246,24 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
     uOmega3 = uOmega1 + dwC # (rad/sec)
     uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 # Resonance Offset (rad/sec) wrt GS
                                                         # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
+    # print w1/(2.*pi), wrf/(2.*pi)
+    # print "uOmega1", uOmega1/(2.*pi)
+    # print "uOmega2", uOmega2/(2.*pi)
+    # print "uOmega3", uOmega3/(2.*pi)
+    # print "uOmegaAvg", uOmegaAvg/(2.*pi)
+    # print "-----------------"
 
     # Offsets wrt GS
     uOmega2 = uOmega2 - uOmega1                                                
     uOmega3 = uOmega3 - uOmega1  
     uOmegaAvg = uOmegaAvg - uOmega1
     uOmega1 = uOmega1 - uOmega1
+    # print w1/(2.*pi), wrf/(2.*pi)
+    # print "uOmega1", uOmega1/(2.*pi)
+    # print "uOmega2", uOmega2/(2.*pi)
+    # print "uOmega3", uOmega3/(2.*pi)
+    # print "uOmegaAvg", uOmegaAvg/(2.*pi)
+    # print "*************************"
 
     # Calculate resonance offset from the carrier (wrf, ie. spinlock offset)
     # delta(uOmega) = uOmega-bar - lOmega_rf (rad/s)
@@ -261,7 +272,13 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
     delta2 = (uOmega2 - wrf) # rad/s
     delta3 = (uOmega3 - wrf) # rad/s
     deltaAvg = (uOmega1 - wrf) # rad/s, avg delta is GS - carrier
-
+    # print w1/(2.*pi), wrf/(2.*pi)
+    # print "delta1", delta1/(2.*pi)
+    # print "delta2", delta2/(2.*pi)
+    # print "delta3", delta3/(2.*pi)
+    # print "deltaAvg", deltaAvg/(2.*pi)
+    # print "/////////////////////////////"
+    # sys.exit()
     # Because need to calculate arctan instead of arcot, delta is in denominator
     # When on-res, arcot(0/w1*2pi) == pi/2,
     #  However, arctan(w1*2pi/0) is undefined

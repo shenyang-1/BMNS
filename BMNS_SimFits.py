@@ -584,6 +584,8 @@ class SimFit:
       
       mpl.rcParams['pdf.fonttype'] = 42
       mpl.rcParams['font.sans-serif'] = 'arial'
+      mpl.rcParams['axes.linewidth'] = 2
+
       # # Remove onres values from self.R1pV array
       # offv = self.R1pV[self.R1pV[:,0] != 0.]
       # Sort array of R1rho/R2eff values by offset
@@ -603,8 +605,9 @@ class SimFit:
 
       ##### Start decorating plot #####
       # -- Define figure -- #
-      fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
-                       dpi=60)
+      fig, ax = plt.subplots(1,1, figsize=(self.pltvar['size'][0],
+                                           self.pltvar['size'][1]),
+                                           dpi=80)
       # -- Define Colormap -- #
       colormap = plt.cm.jet
       # Create a dictionary of colormap objects, each unique SLP assigned to its own color
@@ -633,18 +636,18 @@ class SimFit:
           lbl = int(slp)
         # Plot symbol only, sim data
         if self.pltvar['plot'] == "symbol":
-          plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          plot = ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl, c=cdict[slp])
         # Plot line only, sim data
         elif self.pltvar['plot'] == "line":
-          plt.plot(xd, yd, self.pltvar['line'][0],
+          ax.plot(xd, yd, self.pltvar['line'][0],
                    linewidth=self.pltvar['line'][1], label=lbl,
                    c=cdict[n[0][1]])
         # Plot symbol and line, sim data
         elif self.pltvar['plot'] == "both":
-          plot = plt.plot(xd, yd, self.pltvar['line'][0],
+          plot = ax.plot(xd, yd, self.pltvar['line'][0],
                    linewidth=self.pltvar['line'][1], c=cdict[slp])
-          plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl,
                    c=plot[0].get_color())
 
@@ -661,16 +664,33 @@ class SimFit:
           slp = n[0][1]
           # Define plot lbl
           lbl = int(slp)
-          plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          plot = ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl,
-                   c=cdict[n[0][1]])
+                   c=cdict[int(slp)])
 
       ##### Start decorating plot #####
-      # # -- Set a title -- #
-      # plt.title(r'$R_{1\rho}$', size=18)
+
       # -- Set legends -- #
-      legend = plt.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
+      # Get rid of legend error bars
+      handles, labels = ax.get_legend_handles_labels()
+      handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
+      # Create legend object using these handles and labels
+      legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+                          fancybox=False, ncol=2, handlelength=0, frameon=False,
+                          columnspacing=0.0, markerscale=0.0000001, handletextpad=0.5)
+      
+      # Set label text size and color
+      for t in legend.get_texts():
+        t.set_color(cdict[int(t.get_text())])
+        t.set_size(self.pltvar['axis_fs'][1])
+
+      # Get rid of lines in labels
+      for l in legend.get_lines():
+        l.set_linestyle('None')
+
+      # Update title
       plt.setp(legend.get_title(), fontsize=self.pltvar['axis_fs'][1])
+
       # -- Set axes labels -- #
       plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
       plt.ylabel(r'$R_{1\rho}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
@@ -704,7 +724,7 @@ class SimFit:
       plt.clf()
 
   #########################################################################
-  # plotR2eff - Plots R1rho values
+  # plotR2eff - Plots R2eff values
   #########################################################################
   def plotR2eff(self, figp):
     # Find unique SLPs for on/off-res
@@ -723,6 +743,7 @@ class SimFit:
       
       mpl.rcParams['pdf.fonttype'] = 42
       mpl.rcParams['font.sans-serif'] = 'arial'
+      mpl.rcParams['axes.linewidth'] = 2
       # # Remove onres values from self.R1pV array
       # offv = self.R1pV[self.R1pV[:,0] != 0.]
       # Sort array of R1rho/R2eff values by offset
@@ -742,8 +763,11 @@ class SimFit:
 
       ##### Start decorating plot #####
       # -- Define figure -- #
-      fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
-                       dpi=60)
+      fig, ax = plt.subplots(1,1, figsize=(self.pltvar['size'][0],
+                                           self.pltvar['size'][1]),
+                                           dpi=80)
+      # fig = plt.figure(figsize=(self.pltvar['size'][0], self.pltvar['size'][1]),
+      #                  dpi=60)
       # -- Define Colormap -- #
       colormap = plt.cm.jet
       # Create a dictionary of colormap objects, each unique SLP assigned to its own color
@@ -772,18 +796,18 @@ class SimFit:
           lbl = int(slp)
         # Plot symbol only, sim data
         if self.pltvar['plot'] == "symbol":
-          plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          plot = ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl, c=cdict[slp])
         # Plot line only, sim data
         elif self.pltvar['plot'] == "line":
-          plt.plot(xd, yd, self.pltvar['line'][0],
+          ax.plot(xd, yd, self.pltvar['line'][0],
                    linewidth=self.pltvar['line'][1], label=lbl,
                    c=cdict[n[0][1]])
         # Plot symbol and line, sim data
         elif self.pltvar['plot'] == "both":
-          plot = plt.plot(xd, yd, self.pltvar['line'][0],
+          plot = ax.plot(xd, yd, self.pltvar['line'][0],
                    linewidth=self.pltvar['line'][1], c=cdict[slp])
-          plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl,
                    c=plot[0].get_color())
 
@@ -800,16 +824,34 @@ class SimFit:
           slp = n[0][1]
           # Define plot lbl
           lbl = int(slp)
-          plot = plt.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
+          ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
                    markersize=self.pltvar['symbol'][1], label=lbl,
-                   c=cdict[n[0][1]])
+                   c=cdict[int(slp)])
 
       ##### Start decorating plot #####
-      # # -- Set a title -- #
-      # plt.title(r'$R_{1\rho}$', size=18)
+
       # -- Set legends -- #
-      legend = plt.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
+      # Get rid of legend error bars
+      handles, labels = ax.get_legend_handles_labels()
+      handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
+      # Create legend object using these handles and labels
+      legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+                          fancybox=False, ncol=2, handlelength=0, frameon=False,
+                          columnspacing=0.0, markerscale=0.0000001, handletextpad=0.2,
+                          borderpad=0, handleheight=0, labelspacing=0.2)
+      
+      # Set label text size and color
+      for t in legend.get_texts():
+        t.set_color(cdict[int(t.get_text())])
+        t.set_size(self.pltvar['axis_fs'][1])
+
+      # Get rid of lines in labels
+      for l in legend.get_lines():
+        l.set_linestyle('None')
+
+      # Update title
       plt.setp(legend.get_title(), fontsize=self.pltvar['axis_fs'][1])
+
       # -- Set axes labels -- #
       plt.xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=self.pltvar['label_fs'][0])
       plt.ylabel(r'$R_{2}+R_{ex}\,(s^{-1})$', size=self.pltvar['label_fs'][1])
@@ -850,6 +892,7 @@ class SimFit:
     if self.slon is not None:
       mpl.rcParams['pdf.fonttype'] = 42
       mpl.rcParams['font.sans-serif'] = 'arial'
+      mpl.rcParams['axes.linewidth'] = 2
       # Remove offres R1rho values
       # sim data
       n = self.R1pV

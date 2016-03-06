@@ -85,6 +85,7 @@ def CalcRateTau(pB, pC, kexAB, kexAC, kexBC):
     tau2 = 1./k21
   else:
     tau2 = ufloat(0., 0.)
+    
   # ES2 lifetime
   if k31 != 0. and k32 != 0.:
     tau3 = 1./k31 + 1./k32
