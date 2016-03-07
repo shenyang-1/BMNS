@@ -47,8 +47,6 @@ class GraphFit:
   #   time : numpy array of times (sec)
   #---------------------------#---------------------------#
   def WriteGraph(self, ob, outpath, loopNum, time, FitType="local", FitEqn="bm"):
-    mpl.rcParams['pdf.fonttype'] = 42
-
     # Null reduced chi-sq
     redchisq = 999.
     # Need to split data up by spinlock powers
@@ -214,11 +212,25 @@ class GraphFit:
         FILE.write(",".join(list([str(x) for x in line])) + "\n")
     FILE.close()
 
+    # Plotting default settings
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.sans-serif'] = 'arial'
+    mpl.rcParams['axes.linewidth'] = 2
+    # Label fig sizes, font sizes, etc
+    lfs, ufs = 10, 8 # X/Y figure size, inches
+    xaxfs, yaxfs = 32, 32 # X/Y axis font size
+    xlblfs, ylblfs = 32, 32 # X/Y label font size
+    ttlfs = 32 # Title font size
+    lnwdth = 2. # linewidth
+    symsize = 13. # symbol size
+    resisize = 11. # residual size
+
     #### Plot: R1p, R2eff, R1p Residual, R2eff Residual ####
     ### Plot the data in the master data array and in the simulated trend lines
     ## 2x2 Plot: ul (R1p), ll (R1p residual), ur (R2eff), lr (R2eff residual)
-    fig, ax = plt.subplots(2,2, sharex=True, figsize=(16,10), dpi=80)
-
+    fig, ax = plt.subplots(2,2, sharex=True, figsize=(lfs*2,ufs*2), dpi=80)
+    # -- Set axes font sizes -- #
+    mpl.rcParams.update({'font.size': xaxfs})
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
       # Define current SLP
@@ -226,11 +238,11 @@ class GraphFit:
       ## Up-Left : R1rho plot
         # Plot R1rho with error bars
       # plot1 = ax[0,0].plot(j[:,0]/1e3, j[:,1])
-      plot1 = ax[0,0].errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o', c=cdict[slp])
-        # Plot R1rho trendlines
-      ax[0,0].plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(i[0][1]))
+      plot1 = ax[0,0].errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o', c=cdict[slp], markersize=symsize)
+      # Plot R1rho trendlines
+      ax[0,0].plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(slp), linewidth=lnwdth)
       ax[0,0].set_title(r'$R_{1\rho}\,\mathrm{ Plot}\,|\,\overline{\chi}^2\,%.2f$'
-                        % redchisq, size=18)
+                        % redchisq, size=ttlfs)
       # Set axes limits
       if ob.xmin is None and ob.xmax is None:
         ax[0,0].set_xlim(offmin/1e3, offmax/1e3)
@@ -239,116 +251,174 @@ class GraphFit:
       # Y-axes for R1rho plot
       if ob.ymin is not None and ob.ymax is not None:
         ax[0,0].set_ylim(ob.ymin, ob.ymax)
-      ax[0,0].set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=16)
-      # Set legend
-      legend = ax[0,0].legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
-      plt.setp(legend.get_title(), fontsize=16)
+      ax[0,0].set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=ylblfs)
+      # -- Set legends -- #
+      # Get rid of legend error bars
+      handles, labels = ax[0,0].get_legend_handles_labels()
+      handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
+      
+      # Create legend object using these handles and labels
+      legend = ax[0,0].legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+                          fancybox=False, ncol=2, handlelength=0, frameon=False,
+                          columnspacing=0.0, markerscale=0.0000001, handletextpad=0.2,
+                          borderpad=0, handleheight=0, labelspacing=0.2)
+      
+      # Set label text size and color
+      for t in legend.get_texts():
+        t.set_color(cdict[int(t.get_text())])
+        t.set_size(xaxfs)
+
+      # Get rid of lines in labels
+      for l in legend.get_lines():
+        l.set_linestyle('None')
+
+      # Update title
+      plt.setp(legend.get_title(), fontsize=xaxfs)
+
       ## Up-Right : R2eff plot
         # Plot R2eff with error bars
       # plot2 = ax[0,1].errorbar(j[:,0]/1e3, j[:,2])
-      plot2 = ax[0,1].errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o', c=cdict[slp])
+      plot2 = ax[0,1].errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o',
+                               c=cdict[slp], markersize=symsize)
         # Plot R2eff trendlines
-      ax[0,1].plot(j[:,0]/1e3, j[:,2], c=plot2[0].get_color())
-      ax[0,1].set_title(r'$R_2+R_{ex}\,\mathrm{ Plot}$', size=18)
+      ax[0,1].plot(j[:,0]/1e3, j[:,2], c=plot2[0].get_color(), linewidth=lnwdth)
+      ax[0,1].set_title(r'$R_2+R_{ex}\,\mathrm{ Plot}$', size=ttlfs)
       # Y-axes for R2eff plot
       if ob.ymin is not None and ob.ymax is not None:
         ax[0,1].set_ylim(ob.ymin, ob.ymax)
-      ax[0,1].set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=16)
+      ax[0,1].set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=ylblfs)
       ## Bottom-Left : Residual R1rho
         # Plot R1rho residual scatter
-      ax[1,0].plot(i[:,0]/1e3, i[:,8], 'o', c=plot1[0].get_color())
+      ax[1,0].plot(i[:,0]/1e3, i[:,8], 'o', c=plot1[0].get_color(), markersize=resisize)
       ax[1,0].title.set_visible(False)
-      ax[1,0].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=16)
-      ax[1,0].set_ylabel(r'$R_{1\rho}\,\mathrm{ Residual}$', size=16)
+      ax[1,0].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+      ax[1,0].set_ylabel(r'$R_{1\rho}\,\mathrm{ Residual}$', size=ylblfs)
       ## Bottom-Right : Residual R2eff
         # Plot R2eff residual scatter
-      ax[1,1].plot(i[:,0]/1e3, i[:,9], 'o', c=plot2[0].get_color())
+      ax[1,1].plot(i[:,0]/1e3, i[:,9], 'o', c=plot2[0].get_color(), markersize=resisize)
       ax[1,1].title.set_visible(False)
-      ax[1,1].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=16)
-      ax[1,1].set_ylabel(r'$R_2+R_{ex}\,\mathrm{ Residual}$', size=16)
+      ax[1,1].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+      ax[1,1].set_ylabel(r'$R_2+R_{ex}\,\mathrm{ Residual}$', size=ylblfs)
     fig.set_tight_layout(True)
     # Write out figure
     fig.savefig(figPath, transparent=True)
-    # Clear figure
-    fig.clf()
     # Close plot
     plt.close(fig)
+    # Clear fig2ure
+    fig.clf()
 
     #### Plot R2eff only ####
     ### Plot the data in the master data array and in the simulated trend lines
-    fig2, ax2 = plt.subplots(1,1, figsize=(8,6), dpi=80)
+    fig, ax = plt.subplots(1,1, figsize=(lfs, ufs), dpi=80)
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
       # Define current SLP
       slp = i[0][1]
-      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o', c=cdict[slp])
+      plot1 = ax.errorbar(i[:,0]/1e3, i[:,4], yerr = i[:,5], fmt = 'o', c=cdict[slp],
+                          markersize=symsize)
         # Plot R2eff trendlines
-      ax2.plot(j[:,0]/1e3, j[:,2], c=plot1[0].get_color(), label = int(i[0][1]))
+      ax.plot(j[:,0]/1e3, j[:,2], c=plot1[0].get_color(), label = int(slp), linewidth=lnwdth)
       
       # Set plot title to include the red. chi-square value
-      ax2.set_title(r'$\overline{\chi}^2\,%.2f$'
-                    % redchisq, size=18)
+      ax.set_title(r'$\overline{\chi}^2\,%.2f$' % redchisq, size=ttlfs)
 
       # Xlims
       if ob.xmin is None and ob.xmax is None:
-        ax2.set_xlim(offmin/1e3, offmax/1e3)
+        ax.set_xlim(offmin/1e3, offmax/1e3)
       else:
-        ax2.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
+        ax.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
       # Y-ax2es for R2eff plot
       if ob.ymin is not None and ob.ymax is not None:
-        ax2.set_ylim(ob.ymin, ob.ymax)
-      ax2.set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=18)
-      ax2.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=18)
+        ax.set_ylim(ob.ymin, ob.ymax)
+      ax.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+      ax.set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=ylblfs)
 
-      # Set figure legend
-      legend = ax2.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
-      plt.setp(legend.get_title(), fontsize=18)
+      # -- Set legends -- #
+      # Get rid of legend error bars
+      handles, labels = ax.get_legend_handles_labels()
+      handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
+      # Create legend object using these handles and labels
+      legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+                          fancybox=False, ncol=2, handlelength=0, frameon=False,
+                          columnspacing=0.0, markerscale=0.0000001, handletextpad=0.2,
+                          borderpad=0, handleheight=0, labelspacing=0.2)
+      
+      # Set label text size and color
+      for t in legend.get_texts():
+        t.set_color(cdict[int(t.get_text())])
+        t.set_size(xaxfs)
 
-    fig2.set_tight_layout(True)
+      # Get rid of lines in labels
+      for l in legend.get_lines():
+        l.set_linestyle('None')
+
+      # Update title
+      plt.setp(legend.get_title(), fontsize=xaxfs)
+
+    fig.set_tight_layout(True)
     # Write out fig2ure
-    fig2.savefig(figR2effPath, transparent=True)
-    # Clear fig2ure
-    fig2.clf()
+    fig.savefig(figR2effPath, transparent=True)
     # Close plot
-    plt.close(fig2)
+    plt.close(fig)
+    # Clear fig2ure
+    fig.clf()
 
     #### Plot R1rho only ####
     ### Plot the data in the master data array and in the simulated trend lines
-    fig2, ax2 = plt.subplots(1,1, figsize=(8,6), dpi=80)
+    fig, ax = plt.subplots(1,1, figsize=(lfs, ufs), dpi=80)
     # Loop over experimental and simulated data and produce graphs
     for i,j in zip(mData,sData):
       # Define current SLP
       slp = i[0][1]
-      plot1 = ax2.errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o', c=cdict[slp])
+      plot1 = ax.errorbar(i[:,0]/1e3, i[:,2], yerr = i[:,3], fmt = 'o',
+                           c=cdict[slp], markersize=symsize)
         # Plot R1rho trendlines
-      ax2.plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(i[0][1]))
+      ax.plot(j[:,0]/1e3, j[:,1], c=plot1[0].get_color(), label = int(slp), linewidth=lnwdth)
 
       # Set plot title to include the red. chi-square value
-      ax2.set_title(r'$\overline{\chi}^2\,%.2f$'
-                    % redchisq, size=18)
+      ax.set_title(r'$\overline{\chi}^2\,%.2f$' % redchisq, size=ttlfs)
 
       # Xlims
       if ob.xmin is None and ob.xmax is None:
-        ax2.set_xlim(offmin/1e3, offmax/1e3)
+        ax.set_xlim(offmin/1e3, offmax/1e3)
       else:
-        ax2.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
+        ax.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
       # Y-ax2es for R2eff plot
       if ob.ymin is not None and ob.ymax is not None:
-        ax2.set_ylim(ob.ymin, ob.ymax)
-      ax2.set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=18)
-      ax2.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=18)
+        ax.set_ylim(ob.ymin, ob.ymax)
+      ax.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+      ax.set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=ylblfs)
 
-      # Set figure legend
-      legend = ax2.legend(title=r'$\omega\,2\pi^{-1}\,{(Hz)}$', numpoints=1, fancybox=True)
-      plt.setp(legend.get_title(), fontsize=18)
+      # -- Set legends -- #
+      # Get rid of legend error bars
+      handles, labels = ax.get_legend_handles_labels()
+      handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
+      
+      # Create legend object using these handles and labels
+      legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+                          fancybox=False, ncol=2, handlelength=0, frameon=False,
+                          columnspacing=0.0, markerscale=0.0000001, handletextpad=0.2,
+                          borderpad=0, handleheight=0, labelspacing=0.2)
+      
+      # Set label text size and color
+      for t in legend.get_texts():
+        t.set_color(cdict[int(t.get_text())])
+        t.set_size(xaxfs)
 
-    fig2.set_tight_layout(True)
+      # Get rid of lines in labels
+      for l in legend.get_lines():
+        l.set_linestyle('None')
+
+      # Update title
+      plt.setp(legend.get_title(), fontsize=xaxfs)
+
+    fig.set_tight_layout(True)
     # Write out fig2ure
-    fig2.savefig(figR1rhoPath, transparent=True)
-    # Clear fig2ure
-    fig2.clf()
+    fig.savefig(figR1rhoPath, transparent=True)
     # Close plot
-    plt.close(fig2)
+    plt.close(fig)
+    # Clear fig2ure
+    fig.clf()
 
     ### Now Handle On-Resonance Data ###
     # Get all on-resonance spinlock powers (if they exist)
@@ -377,36 +447,37 @@ class GraphFit:
       #### Plot On-Res R1rho ####
       ## if there is any data to plot ##
       ### Plot the data in the master data array and in the simulated trend lines
-      fig2, ax2 = plt.subplots(1,1, figsize=(8,6), dpi=80)
+      fig, ax = plt.subplots(1,1, figsize=(lfs, ufs), dpi=80)
 
       # Plot individual onres R1rho points
-      plot1 = ax2.errorbar(onresD[:,1]/1e3, onresD[:,2], 
-                           c='black', yerr = onresD[:,3], fmt = 'o')
+      plot1 = ax.errorbar(onresD[:,1]/1e3, onresD[:,2], 
+                           c='black', yerr = onresD[:,3], fmt = 'o',
+                           markersize=symsize)
+      
       # Plot onres R1rho trendlines
-      ax2.plot(simSLs/1e3, simOnRes, c='red')
+      ax.plot(simSLs/1e3, simOnRes, c='red', linewidth=lnwdth)
       
       # Set plot title to include the red. chi-square value
-      ax2.set_title(r'$\overline{\chi}^2\,%.2f$'
-                    % redchisq, size=18)
+      ax.set_title(r'$\overline{\chi}^2\,%.2f$' % redchisq, size=ttlfs)
 
       # Xlims
       if ob.xmin is None and ob.xmax is None:
-        ax2.set_xlim(0./1e3, onmax/1e3)
+        ax.set_xlim(0./1e3, onmax/1e3)
       else:
-        ax2.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
+        ax.set_xlim(ob.xmin/1e3, ob.xmax/1e3)
       # Y-ax2es for R2eff plot
       if ob.ymin is not None and ob.ymax is not None:
-        ax2.set_ylim(ob.ymin, ob.ymax)
-      ax2.set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=18)
-      ax2.set_xlabel(r'$\omega\,2\pi^{-1}\,{(kHz)}$', size=18)
+        ax.set_ylim(ob.ymin, ob.ymax)
+      ax.set_xlabel(r'$\omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)        
+      ax.set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=ylblfs)
 
-      fig2.set_tight_layout(True)
+      fig.set_tight_layout(True)
       # Write out fig2ure
-      fig2.savefig(figOnResPath, transparent=True)
-      # Clear fig2ure
-      fig2.clf()
+      fig.savefig(figOnResPath, transparent=True)
       # Close plot
-      plt.close(fig2)
+      plt.close(fig)
+      # Clear fig2ure
+      fig.clf()
 
 #########################################################################
 # *Parse class* is solely used to parse input data (R1rho or parameter files)

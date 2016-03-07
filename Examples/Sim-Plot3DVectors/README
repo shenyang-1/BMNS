@@ -2,10 +2,10 @@ Simulates a few R1rho points with very long decays (N=500 delays)
 The evolution of states A,B,C in 3D can be visualized.
 
 To generate decays, run:
-bm -sim BMNS-SimParams.txt
+bm -sim BMNS-SimParams.txt 3DVecs/
 
 To plot decays, select a csv file from the magVecs/ folder and run:
 bm -3d [Magnetization CSV file]
 
 E.g.
-bm -3d -750.0_400.0.csv
+bm -3d 3DVecs/MagVecs/-750.0_400.0.csv

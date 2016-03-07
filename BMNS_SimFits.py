@@ -581,7 +581,7 @@ class SimFit:
         uoffslp = sorted(list(set(self.sloff[:,1])))
         doffslp = [] # Empty list for real data
         cslp = uoffslp
-      
+      # Plotting default settings
       mpl.rcParams['pdf.fonttype'] = 42
       mpl.rcParams['font.sans-serif'] = 'arial'
       mpl.rcParams['axes.linewidth'] = 2
@@ -976,8 +976,12 @@ class SimFit:
       plt.savefig(figp, transparent=True)
       plt.close(fig)
       plt.clf()
-
-
+  #########################################################################
+  # Normalize a vector with lambda function #
+  #########################################################################
+  def normalize(self, vec):
+    return (lambda norm: [x/norm for x in vec])(sum(x**2. for x in vec) **0.5)
+  
   #########################################################################
   # plot3DVec - Plots 3D magnetization vectors vs. time
   #########################################################################
@@ -986,20 +990,24 @@ class SimFit:
     if external is not None:
       if os.path.exists(external):
         self.magVecs = np.genfromtxt(external, delimiter=',', skip_header=1)
+
     Ma = self.magVecs[:,5:8]
     Mb = self.magVecs[:,8:11]
-    # Normalize to Ma
-    # define scaling factor
-    sf = Ma.max(axis=0) / Mb.max(axis=0)
-    Mb = Mb * sf
     Mc = self.magVecs[:,11:14]
-    sf = Ma.max(axis=0) / Mc.max(axis=0)
-    Mc = Mc * sf
-    if Mc[0].all() == np.zeros(3).all():
+    Ma = np.array(self.normalize(Ma))
+    # Don't mess with boring zero arrays
+    if np.count_nonzero(Mb[0]) == 0:
+      Mb = np.zeros(Mb.shape)
+    else:
+      Mb = np.array(self.normalize(Mb))
+    if np.count_nonzero(Mc[0]) == 0:
       Mc = np.zeros(Mc.shape)
+    else:
+      Mc = np.array(self.normalize(Mc))
 
     # Plot N array of 3D vectors
     self.VecAnimate3D(np.array([Ma, Mb, Mc]))
+  
   #############################################
   # Animate line trace and points at X,Y,Z in 3D Cartesian coordinate system
   # XYZ is a N x M x O matrix containing N matrices of M depth and O=3 length

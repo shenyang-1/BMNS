@@ -150,14 +150,14 @@ MCNum 500
 +
 Plot line
 Line - 2
-Symbol o 10
-Size 12 8
+Symbol o 13
+Size 10 8
 #R1p_x None 1000
 #R1p_y 0 100
 #R2eff_x -1000 1000
 #R2eff_y 0 100
 On_x 0 None
 #On_y 0 50
-Axis_FS 18 18
-Label_FS 22 22
+Axis_FS 32 32
+Label_FS 32 32
 

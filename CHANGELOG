@@ -3,6 +3,12 @@
 #  Isaac Kimsey
 #########################################################################
 
+Mar 07 2016
+************
+- Updated default plotting styles for fit and simulation plots.
+	Removed symbols in figure legend, replaced with colored text to match SLPs.
+	SLPs now split in to two columns.
+
 Mar 03 2016
 ************
 - Can now directly simulate decaying magnetization and R1rho values at given
