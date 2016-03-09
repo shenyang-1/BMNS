@@ -776,7 +776,8 @@ class Parse:
             if nodel == False:
               tData = delete(tData, 0, 1)
             self.DataInp.append(tData)
-
+          else:
+            self.DataInp.append(tData)
         else:
           missStr += "  ERROR: Too few data rows and/or columns for ( %s )\n" % Name
           errBool = True

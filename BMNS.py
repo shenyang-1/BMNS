@@ -528,7 +528,8 @@ def Main():
   #  arg2 Tab delimited file
   # Will dump csv file of same name to same directory
   #---------------------------------------------------
-  elif argc == 3 and sys.argv[1].lower() == "-tab2csv" and os.path.isfile(os.path.join(curDir, sys.argv[2])):
+  elif (argc == 3 and sys.argv[1].lower() == "-tab2csv" 
+        and os.path.isfile(os.path.join(curDir, sys.argv[2]))):
     tabPath = os.path.join(curDir, sys.argv[2])
     csvPath = os.path.join(curDir, sys.argv[2].replace(".tab",".csv"))
     FILE = open(tabPath, "rU")
