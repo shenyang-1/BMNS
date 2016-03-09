@@ -222,7 +222,7 @@ class GraphFit:
     xlblfs, ylblfs = 32, 32 # X/Y label font size
     ttlfs = 32 # Title font size
     lnwdth = 2. # linewidth
-    symsize = 13. # symbol size
+    symsize = 12. # symbol size
     resisize = 11. # residual size
 
     #### Plot: R1p, R2eff, R1p Residual, R2eff Residual ####
