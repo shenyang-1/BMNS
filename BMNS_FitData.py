@@ -807,6 +807,8 @@ class Parameters:
     self.name = None
     # Larmor freq. Needed to convert between ppm->Hz/rads
     self.lf = None
+    # Temperature, Kelving
+    self.te = 298.2 # default room temp
     # parName_Fit# : [p0 Val 0, (lowBound,upBound) 1, Share 2, Fixed 3, 
     #                 Share Partner 4, Fit Val 5, Fit Error 6, Brute-force Type 7
     #                 Brute-force it number 8]
@@ -1048,6 +1050,8 @@ class Data:
     #  2. R1rho (s^-1)
     #  3. R1rho Error (s^-1), optional
     self.R1pD = array([])
+    # Numpy array for error corrupted R1p values
+    self.R1p_MC = array([])
     # Bool to state if error is given
     self.Err = False
   
@@ -1103,6 +1107,10 @@ class Fits(Parameters, Data):
     #  N is loops over local fitting algorithm (e.g. N local fits)
     #  M is length of parameters and reduced chi-square
     self.localFits = {}
+    # Dictionary to store NxM MC R1p corrupted fits of Pars values
+    #  N is loops over local fitting algorithm (e.g. N local fits)
+    #  M is length of parameters and reduced chi-square
+    self.mcFits = {}
     # Inheritance
     Parameters.__init__(self, self.FitNum)
     Data.__init__(self)
@@ -1448,6 +1456,7 @@ class Global():
     gPath = os.path.join(outPath, "GlobalFits_%s.csv" % ob.name)
     pPath = os.path.join(outPath, "PolishedFits_%s.csv" % ob.name)
     lPath = os.path.join(outPath, "LocalFits_%s.csv" % ob.name)
+    mcPath = os.path.join(outPath, "MCFits_%s.csv" % ob.name)
     
     # Generate formatted output names for different fit types
     f2lPath = os.path.join(outPath, "2-state_Formatted_LocalFits_%s.csv" % ob.name)    
@@ -1512,7 +1521,24 @@ class Global():
         FILE.write(str(ob.localFits[fitnum][key]) + ",")
       FILE.write("\n")
       FILE.close()
-
+    # Write out ob MC corrupted fit parameters in order.
+    elif len(ob.mcFits) != 0 and flag == "mcerr":
+      # Check to see if a file exists already
+      if not os.path.isfile(mcPath): wo = "wb"
+      else: wo = "ab"
+      FILE = open(mcPath, "ab")
+      # If file exists already, don't write out header.
+      if wo == "wb":
+        FILE.write("Name,FitNum,")
+        for key in outKeys:
+          FILE.write(key + ",")
+        FILE.write("\n")
+      # Write out fit values that match keys
+      FILE.write(str(ob.name) + "," + str(fitnum) + ",")
+      for key in outKeys:
+        FILE.write(str(ob.mcFits[fitnum][key]) + ",")
+      FILE.write("\n")
+      FILE.close()
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ### Formatted write-out Global Fits
     if len(ob.globalFits) != 0 and flag == "global":
@@ -1529,83 +1555,83 @@ class Global():
       fitob = ob.localFits
       f2path = f2lPath
       f3path = f3lPath
-
-    if fitob[fitnum]["pC"] == 0.:
-      ### Write-out 2-state Fits ###
-      # Check to see if a file exists already
-      FILE = open(f2path, "ab")
-      # If file exists already, don't write out header.
-      FILE.write("Fit #%s\n" % fitnum)
-      FILE.write("%s Pars,Fit Value,Error\n" % ob.name)
-      # Write out formatted values
-      FILE.write("pB (%%),%.3f,%.3f\n"
-        % (fitob[fitnum]["pB"]*1e2, fitob[fitnum]["pB_err"]*1e2))
-      FILE.write("dwB (ppm),%.2f,%.2f\n"
-        % (fitob[fitnum]["dwB"], fitob[fitnum]["dwB_err"]))
-      FILE.write("kexAB (s^-1),%.0f,%.0f\n"
-        % (fitob[fitnum]["kexAB"], fitob[fitnum]["kexAB_err"]))
-      FILE.write("R1 (s^-1),%.2f,%.2f\n"
-        % (fitob[fitnum]["R1"], fitob[fitnum]["R1_err"]))
-      # Optional R1b write-out
-      if fitob[fitnum]["R1b"] != fitob[fitnum]["R1"]:
-        FILE.write("R1b (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R1b"], fitob[fitnum]["R1b_err"]))
-      FILE.write("R2 (s^-1),%.2f,%.2f\n"
-        % (fitob[fitnum]["R2"], fitob[fitnum]["R2_err"]))
-      # Optional R2b write-out
-      if fitob[fitnum]["R2b"] != fitob[fitnum]["R2"]:
-        FILE.write("R2b (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R2b"], fitob[fitnum]["R2b_err"]))
-      FILE.write("Red. Chi-sq,%.2f\n"
-        % (fitob[fitnum]["RedChiSq"]))
-      FILE.close()
-    else:
-      ### Write-out 3-state Fits ###
-      # Check to see if a file exists already
-      FILE = open(f3path, "ab")
-      # If file exists already, don't write out header.
-      FILE.write("Fit #%s\n" % fitnum)
-      FILE.write("%s Pars,Fit Value,Error\n" % ob.name)
-      # Write out formatted values
-      FILE.write("pB (%%),%.3f,%.3f\n"
-        % (fitob[fitnum]["pB"]*1e2, fitob[fitnum]["pB_err"]*1e2))
-      FILE.write("pC (%%),%.3f,%.3f\n"
-        % (fitob[fitnum]["pC"]*1e2, fitob[fitnum]["pC_err"]*1e2))
-      FILE.write("dwB (ppm),%.2f,%.2f\n"
-        % (fitob[fitnum]["dwB"], fitob[fitnum]["dwB_err"]))
-      FILE.write("dwC (ppm),%.2f,%.2f\n"
-        % (fitob[fitnum]["dwC"], fitob[fitnum]["dwC_err"]))
-      FILE.write("kexAB (s^-1),%.0f,%.0f\n"
-        % (fitob[fitnum]["kexAB"], fitob[fitnum]["kexAB_err"]))
-      FILE.write("kexAC (s^-1),%.0f,%.0f\n"
-        % (fitob[fitnum]["kexAC"], fitob[fitnum]["kexAC_err"]))
-      # Optional kexBC write-out
-      if fitob[fitnum]["kexBC"] != 0.:
-        FILE.write("kexBC (s^-1),%.0f,%.0f\n"
-          % (fitob[fitnum]["kexBC"], fitob[fitnum]["kexBC_err"]))
-      FILE.write("R1 (s^-1),%.2f,%.2f\n"
-        % (fitob[fitnum]["R1"], fitob[fitnum]["R1_err"]))
-      # Optional R1b write-out
-      if fitob[fitnum]["R1b"] != fitob[fitnum]["R1"]:
-        FILE.write("R1b (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R1b"], fitob[fitnum]["R1b_err"]))
-      # Optional R1c write-out
-      if fitob[fitnum]["R1c"] != fitob[fitnum]["R1"]:
-        FILE.write("R1c (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R1c"], fitob[fitnum]["R1c_err"]))
-      FILE.write("R2 (s^-1),%.2f,%.2f\n"
-        % (fitob[fitnum]["R2"], fitob[fitnum]["R2_err"]))
-      # Optional R2b write-out
-      if fitob[fitnum]["R2b"] != fitob[fitnum]["R2"]:
-        FILE.write("R2b (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R2b"], fitob[fitnum]["R2b_err"]))
-      # Optional R2c write-out
-      if fitob[fitnum]["R2c"] != fitob[fitnum]["R2"]:
-        FILE.write("R2c (s^-1),%.2f,%.2f\n"
-          % (fitob[fitnum]["R2c"], fitob[fitnum]["R2c_err"]))
-      FILE.write("Red. Chi-sq,%.2f\n"
-        % (fitob[fitnum]["RedChiSq"]))
-      FILE.close()
+    if flag != "mcerr":
+      if fitob[fitnum]["pC"] == 0.:
+        ### Write-out 2-state Fits ###
+        # Check to see if a file exists already
+        FILE = open(f2path, "ab")
+        # If file exists already, don't write out header.
+        FILE.write("Fit #%s\n" % fitnum)
+        FILE.write("%s Pars,Fit Value,Error\n" % ob.name)
+        # Write out formatted values
+        FILE.write("pB (%%),%.3f,%.3f\n"
+          % (fitob[fitnum]["pB"]*1e2, fitob[fitnum]["pB_err"]*1e2))
+        FILE.write("dwB (ppm),%.2f,%.2f\n"
+          % (fitob[fitnum]["dwB"], fitob[fitnum]["dwB_err"]))
+        FILE.write("kexAB (s^-1),%.0f,%.0f\n"
+          % (fitob[fitnum]["kexAB"], fitob[fitnum]["kexAB_err"]))
+        FILE.write("R1 (s^-1),%.2f,%.2f\n"
+          % (fitob[fitnum]["R1"], fitob[fitnum]["R1_err"]))
+        # Optional R1b write-out
+        if fitob[fitnum]["R1b"] != fitob[fitnum]["R1"]:
+          FILE.write("R1b (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R1b"], fitob[fitnum]["R1b_err"]))
+        FILE.write("R2 (s^-1),%.2f,%.2f\n"
+          % (fitob[fitnum]["R2"], fitob[fitnum]["R2_err"]))
+        # Optional R2b write-out
+        if fitob[fitnum]["R2b"] != fitob[fitnum]["R2"]:
+          FILE.write("R2b (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R2b"], fitob[fitnum]["R2b_err"]))
+        FILE.write("Red. Chi-sq,%.2f\n"
+          % (fitob[fitnum]["RedChiSq"]))
+        FILE.close()
+      else:
+        ### Write-out 3-state Fits ###
+        # Check to see if a file exists already
+        FILE = open(f3path, "ab")
+        # If file exists already, don't write out header.
+        FILE.write("Fit #%s\n" % fitnum)
+        FILE.write("%s Pars,Fit Value,Error\n" % ob.name)
+        # Write out formatted values
+        FILE.write("pB (%%),%.3f,%.3f\n"
+          % (fitob[fitnum]["pB"]*1e2, fitob[fitnum]["pB_err"]*1e2))
+        FILE.write("pC (%%),%.3f,%.3f\n"
+          % (fitob[fitnum]["pC"]*1e2, fitob[fitnum]["pC_err"]*1e2))
+        FILE.write("dwB (ppm),%.2f,%.2f\n"
+          % (fitob[fitnum]["dwB"], fitob[fitnum]["dwB_err"]))
+        FILE.write("dwC (ppm),%.2f,%.2f\n"
+          % (fitob[fitnum]["dwC"], fitob[fitnum]["dwC_err"]))
+        FILE.write("kexAB (s^-1),%.0f,%.0f\n"
+          % (fitob[fitnum]["kexAB"], fitob[fitnum]["kexAB_err"]))
+        FILE.write("kexAC (s^-1),%.0f,%.0f\n"
+          % (fitob[fitnum]["kexAC"], fitob[fitnum]["kexAC_err"]))
+        # Optional kexBC write-out
+        if fitob[fitnum]["kexBC"] != 0.:
+          FILE.write("kexBC (s^-1),%.0f,%.0f\n"
+            % (fitob[fitnum]["kexBC"], fitob[fitnum]["kexBC_err"]))
+        FILE.write("R1 (s^-1),%.2f,%.2f\n"
+          % (fitob[fitnum]["R1"], fitob[fitnum]["R1_err"]))
+        # Optional R1b write-out
+        if fitob[fitnum]["R1b"] != fitob[fitnum]["R1"]:
+          FILE.write("R1b (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R1b"], fitob[fitnum]["R1b_err"]))
+        # Optional R1c write-out
+        if fitob[fitnum]["R1c"] != fitob[fitnum]["R1"]:
+          FILE.write("R1c (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R1c"], fitob[fitnum]["R1c_err"]))
+        FILE.write("R2 (s^-1),%.2f,%.2f\n"
+          % (fitob[fitnum]["R2"], fitob[fitnum]["R2_err"]))
+        # Optional R2b write-out
+        if fitob[fitnum]["R2b"] != fitob[fitnum]["R2"]:
+          FILE.write("R2b (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R2b"], fitob[fitnum]["R2b_err"]))
+        # Optional R2c write-out
+        if fitob[fitnum]["R2c"] != fitob[fitnum]["R2"]:
+          FILE.write("R2c (s^-1),%.2f,%.2f\n"
+            % (fitob[fitnum]["R2c"], fitob[fitnum]["R2c_err"]))
+        FILE.write("Red. Chi-sq,%.2f\n"
+          % (fitob[fitnum]["RedChiSq"]))
+        FILE.close()
 
   #---------------------------#---------------------------# 
   # Takes in loop number (int), unpackaged paramter array (numpy) from 
@@ -1643,6 +1669,18 @@ class Global():
         ob.polishedFits[loopNum].update({x:0.0 for x in self.gErr})
       else:
         ob.polishedFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
+    # Unpack MC error parameter array
+    elif FitType.lower() == "mcerr":
+      # Assign local red chi-square for this fit
+      # Assign number of function evals
+      ob.lRCS, ob.lFE = redChiSq, funcEvals
+      ob.mcFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
+      ob.mcFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
+      if errPars is None:
+        # Add error names, but for now give NO ERROR
+        ob.mcFits[loopNum].update({x:0.0 for x in self.gErr})
+      else:
+        ob.mcFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
     # Unpack and update local fits dictionary
     else:
       # Assign local red chi-square for this fit

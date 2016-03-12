@@ -134,6 +134,27 @@ def help():
    >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder]\n'''
 
   print '''
+  ###########################################################################
+  #####  -fitmc : R1rho BM 2-/2-state Fitting with MC Error Estimation  #####
+  ###########################################################################
+  Takes in R1rho data and error (optional) and fits
+   the data to the Bloch-McConnell numerical equations
+   with different local and global fitting algorithms.
+  
+   arg1 '-fitmc'
+   arg2 Parameter Text File
+        - See Example\pExample.txt
+   arg3 Parent directory of R1rho.csv data files
+         corresponding to names in pars file.
+       - Each data file is ordered: Offset (corrected, Hz), SLP (Hz), R1rho (s-1), R1rho error (s-1)
+         If data file is .tab, assumes Offset<>SLP swap, and removes first column (Folder numbers)
+         If data file has a header, removes header and first column (assumed to be Folder numbers)
+   arg4 Output directory for fit data (Optional)
+   arg5 Monte-Carlo Iteration number (optional)
+
+   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder] 100\n'''   
+
+  print '''
   ####################################################################
   #####   -thermo : Calculate free energies/indv rate constants  #####
   ####################################################################
@@ -156,7 +177,7 @@ def help():
   Output is terminal text that describes the best model based on AIC/BIC
   values and relative weights to one another
   
-  >BMNS.py -thermo [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]\n'''
+  >BMNS.py -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]\n'''
  
   print '''
   ######################################################

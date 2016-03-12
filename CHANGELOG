@@ -3,6 +3,10 @@
 #  Isaac Kimsey
 #########################################################################
 
+Mar 11 2016
+************
+- Added Monte-Carlo parameter error estimation through the '-fitmc' command.
+
 Mar 07 2016
 ************
 - Updated default plotting styles for fit and simulation plots.

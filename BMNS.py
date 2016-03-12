@@ -24,11 +24,14 @@ import BMNS_PlotMisc as pm
 ### Direct numpy imports ###
 from numpy import absolute, array, asarray
 from numpy import diag
+from numpy import float64
 from numpy import isinf, isnan
 from numpy import linspace
 from numpy import nan_to_num
 from numpy import sqrt
 from numpy import zeros
+### Numpy sub imports ###
+from numpy.random import normal
 ### Scipy/Other General Fitting Algs ###
 from scipy.optimize import minimize # Local minimum, see Nelder-Mead
 from scipy.optimize import least_squares
@@ -65,6 +68,24 @@ def Main():
   #         parent data directory.
   #-----------------------------------------------------------------------#
   if "fit" in sys.argv[1].lower():
+    ## Check if user wants to do a MC error estimation
+    # number of MC iterations for error estimation
+    if sys.argv[1].lower() == "-fitmc":
+      # Try to assign MC it number to last arg
+      try:
+        if argc >= 6:
+          # Cast string arg for MC it num to int
+          fitMC = int(sys.argv[5])
+        else:
+          fitMC = 50
+      except ValueError:
+        fitMC = 50
+      mcerr = True # Flag for MC error estimation
+
+    else:
+      fitMC = 1
+      mcerr = False # No MC error
+
     ## Check for Errors in Passed Arguments ##
     #  This function will terminate program if
     #   not all needed arguments or files are present
@@ -79,7 +100,7 @@ def Main():
     ## Define input/output Paths ##
     parPath = os.path.join(curDir, sys.argv[2])  # Path to input parameters
     dataPath = os.path.join(curDir, sys.argv[3]) # Path to parent dir of data
-    if argc == 5:                                # Handle output path (if exists)
+    if argc >= 5:                                # Handle output path (if exists)
       outPath = os.path.join(curDir, sys.argv[4])
       makeFolder(outPath)
     else: # If no output path given, create one in the data folder given above.
@@ -221,7 +242,7 @@ def Main():
       #  Returns matrix of residuals of: (f(x) - known) / error
       #                              or:  f(x) - known
       #---------------------------#---------------------------#
-      def residual(Params):#, nullData):
+      def residual(Params, R1p_MC=None):#, nullData):
         # Expected R1rho based on simulations
         resid = []
 
@@ -230,6 +251,9 @@ def Main():
           # Unpack data
           Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
           R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
+          # Take in error corrupted R1p values
+          if R1p_MC is not None:
+            R1p = ob.R1p_MC
           # Unpack parameters
           lf = ob.lf
           # Parse 'Params' down to only the local values
@@ -239,13 +263,13 @@ def Main():
           #  if equation is specified in ob.fitEqn
           if gl.gFitEqn == "bm":
             # If error in value, residual matrix = (f(x) - obs) / err
-            if len(R1p_e) > 1:
+            if len(R1p_e) > 1:# and R1p_MC is None:
               resid += [(absolute(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
                              for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
 
             # If no error in value, residual matrix = f(x) - obs
             else:
-               resid += [(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
+              resid += [(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
                              for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]
           # Calculate residuals using Laguerre approximations
           elif gl.gFitEqn == "lag":
@@ -316,7 +340,7 @@ def Main():
 
           # !! For least_squares function/Lev-Mar !! #
           fitted = least_squares(residual, fitted[0], bounds = gl.gBnds, max_nfev=10000)
-          
+
           #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           ### Update Fit (polish) Class Objects Here ###         
           # 1. Unpack local fitted parameters
@@ -358,6 +382,25 @@ def Main():
           # Least_squares / Lev-Mar fit
           fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000)
 
+          ## Start MC error loop, if flagged
+          # This will estimate R1p parameter errors as standard dev
+          #  from MC normal error corruption and re-fit of R1p vals
+          if mcerr == True:
+            tpars = []
+            # Error corrupt R1p values normally around mu=R1p, sigma=R1p_err
+            for i in range(fitMC):
+              # Print out MC iteration number to terminal - flush
+              sys.stdout.write("\r    --- Monte-Carlo Error Estimation (%s of %s) ---" % (i+1, fitMC))
+              sys.stdout.flush()             
+              # Iterate over sub ojects in fit
+              for ob in gl.gObs:
+                ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
+              # Fit noise-corrupted R1p data, append fits only to list
+              tpars.append(least_squares(residual, fitted.x, bounds = gl.gBnds, max_nfev=10000,
+                                                                  args=([True])).x)
+            # Combine all fit parameters to one numpy array
+            MCpars = asarray(tpars).astype(float64)
+
           #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           ### Update Fit (local) Class Objects Here ###         
           # 1. Unpack local fitted parameters
@@ -368,11 +411,24 @@ def Main():
             # Reduced chi-square = chi-square / (N (data points) - M (free parameters))
             chisq = chi2(fitted.x)
             redChiSq = chisq / gl.dof
-
+            
             # Calculate fit error
-            #   Here: Standard error of the fit is used
-            fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun, fitted.jac, gl.dof)
-
+            if mcerr == False:
+              #   Here: Standard error of the fit is used
+              fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun, fitted.jac, gl.dof)
+            # Handle MC error write out and plotting
+            else:
+              #   Here: Monte-Carlo parameter error estimation
+              fiterr = MCpars.std(axis=0)
+              # Get all indv red chi-sqs
+              RCS_list = array([chi2(x)/gl.dof for x in MCpars])
+              # Write out MC error corrupted fits to separate CSV
+              for idx,(f,r) in enumerate(zip(MCpars, RCS_list)):
+                # Unpack MC err corrupt fits to object mcfits
+                gl.UnPackFits(idx+1, gl.UnpackgP0(f, ob), r,
+                              fitted.nfev, "mcerr", ob, errPars=gl.UnpackErr(fiterr, ob))
+                # Write out / append MC error corrupted fit data
+                gl.WriteFits(outPath, ob, idx+1, "mcerr")  
             # Unpack global fit param array to local values for Fit object
             gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
                           fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))

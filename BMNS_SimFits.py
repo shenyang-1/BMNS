@@ -698,7 +698,7 @@ class SimFit:
       rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
       # -- Set X-axes limits -- #
       if self.pltvar['r1p_x'][0] is None:
-        xmin = self.R1pV[:,0].min() * 1.05
+        xmin = self.R1pV[:,0].min() / 1.05
       else:
         xmin = self.pltvar['r1p_x'][0]
       if self.pltvar['r1p_x'][1] is None:
@@ -859,7 +859,7 @@ class SimFit:
       rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
       # -- Set X-axes limits -- #
       if self.pltvar['r2eff_x'][0] is None:
-        xmin = self.R1pV[:,0].min() * 1.05
+        xmin = self.R1pV[:,0].min() / 1.05
       else:
         xmin = self.pltvar['r2eff_x'][0]
       if self.pltvar['r2eff_x'][1] is None:
