@@ -6,6 +6,8 @@
 Mar 11 2016
 ************
 - Added Monte-Carlo parameter error estimation through the '-fitmc' command.
+- Added 'Temp' parameter to input file that must be defined prior to fit.
+  This allows for the automatic calculation of free energies of excited states.
 
 Mar 07 2016
 ************

@@ -11,6 +11,7 @@ import itertools as it
 import os, sys
 ### BMNS Imports
 import BMNS_SimR1p as sim
+import BMNS_MathFuncs as mf
 ### Direct numpy imports ###
 from numpy import append, array, asarray
 from numpy import column_stack, concatenate
@@ -486,7 +487,7 @@ class Parse:
   def __init__(self):
     # Variables expected to be in the input parameter file
     #  excludes potential shared fit flags ('*')
-    self.Variables = ["Name","lf","pB","pC","dwB","dwC","kexAB","kexAC","kexBC","R1","R2","R1b","R1c","R2b","R2c"]
+    self.Variables = ["Name","lf","pB","pC","dwB","dwC","kexAB","kexAC","kexBC","R1","R2","R1b","R1c","R2b","R2c","Temp"]
     self.AltFlags = ["x-axis", "y-axis", "trelax", "alignmag"]
     self.ParInp = []  # Store semi-raw parameters read from file
                       #  Sub lists for each '+' delimited parameter block
@@ -657,8 +658,19 @@ class Parse:
             else:
               missStr += ("  Set relaxation delay increment (sec) and maximum (sec)")
               errBool = True              
+          # Check for temperature flag
+          elif val[0].lower() == "temp":
+            # Try to see if it is numerical
+            try:
+              te = float(val[1])
+            except ValueError:
+                missStr += ("  Temperature (%s) is non-numerical."
+                            % (val[1]))
+                errBool = True              
           # Now check that we don't have extra parameters
-          elif val[0].replace('*','').replace('!','').replace('@','').replace('$','') not in self.Variables + self.AltFlags and val[0] not in without:
+          elif (val[0].replace('*','').replace('!','').replace('@','').replace('$','')
+                not in self.Variables + self.AltFlags and val[0] not in without):
+
             missStr += ("  Parameter (%s) in set #%s is not defined, please remove it.\n" 
                         % (val[0], str(idx+1)))
             errBool = True            
@@ -904,6 +916,13 @@ class Parameters:
         self.name = os.path.splitext(inp[1])[0]
       elif "lf" in pName:
         self.lf = float(inp[1])
+      # Get temperature for spin
+      elif "temp" in pName.lower():
+        self.te = float(inp[1])
+        # If value given is <100, assume its in oC and convert
+        if self.te < 100.:
+          self.te = self.te + 273.15
+          print "Assuming %s in centigrade, converting to %sK.\n" % (val[1], self.te)
       # Set magnetization alignment
       elif "alignmag" in pName.lower():
         self.AlignMag = inp[1].lower()
@@ -1155,10 +1174,23 @@ class Global():
     self.gLagKeys = set(["pB","pC","dwB","dwC","kexAB","kexAC","R1","R2"])
     # Shared fit par basenames
     #            pB,pC,dwB,dwC,kexAB,kexAC,kexBC,R1,R1b,R1c,R2,R2b,R2c
-    self.gVar = ["pB","pC","dwB","dwC","kexAB","kexAC","kexBC","R1","R1b","R1c","R2","R2b","R2c"]
+    # Not including unfitted parameters, k12, k21, dG12, etc
+    self.gVar = ["pB","pC","dwB","dwC","kexAB","kexAC","kexBC",
+                  "R1","R1b","R1c","R2","R2b","R2c"]
     # Error base names
+    self.gErr = [x+"_err" for x in self.gVar]
+    # Shared fit par basenames
     #            pB,pC,dwB,dwC,kexAB,kexAC,kexBC,R1,R1b,R1c,R2,R2b,R2c
-    self.gErr = ["pB_err","pC_err","dwB_err","dwC_err","kexAB_err","kexAC_err","kexBC_err","R1_err","R1b_err","R1c_err","R2_err","R2b_err","R2c_err"]
+    self.gAllVar = ["pA","pB","pC","dwB","dwC","kexAB","kexAC","kexBC",
+                    "k12","k21","k13","k31","k23","k32",
+                    "tau1","tau2", "tau3",
+                    "dG12","dG13","ddG12","ddG21","ddG13",
+                    "ddG31","ddG23","ddG32",
+                    "R1","R1b","R1c","R2","R2b","R2c"]
+    # Error base names
+    self.gAllErr = [x+"_err" for x in self.gAllVar]
+    self.gAllD = {x:0. for x in self.gAllVar}
+    self.gAllD.update({x:0. for x in self.gAllErr})
     # Shared fit parameters dictionary that maps key sub names to the parent key name
     #  Parent key names are the first keys, Key_0
     #    e.g. if pA_1 is shared with pA_0 and pA_2
@@ -1450,7 +1482,7 @@ class Global():
   def WriteFits(self, outPath, ob, fitnum, flag):
     
     # Append additional keys to gVars
-    outKeys = ["RedChiSq", "lf", "AlignMag"] + self.gVar + self.gErr
+    outKeys = ["RedChiSq", "lf", "AlignMag", "Temp"] + self.gAllVar + self.gAllErr
 
     # Generate output path names for writing out .csv files
     gPath = os.path.join(outPath, "GlobalFits_%s.csv" % ob.name)
@@ -1476,13 +1508,12 @@ class Global():
       # If file exists already, don't write out header.
       if wo == "wb":
         FILE.write("Name,FitNum,")
-        for key in outKeys:
-          FILE.write(key + ",")
+        FILE.write(",".join(outKeys))
         FILE.write("\n")
       # Write out fit values that match keys
       FILE.write(str(ob.name) + "," + str(fitnum) + ",")
-      for key in outKeys:
-        FILE.write(str(ob.globalFits[fitnum][key]) + ",")
+      FILE.write(",".join([str(ob.globalFits[fitnum][x])
+                           for x in outKeys]))
       FILE.write("\n")
       FILE.close()
     # Write out ob polished fit parameters in order.
@@ -1494,13 +1525,12 @@ class Global():
       # If file exists already, don't write out header.
       if wo == "wb":
         FILE.write("Name,FitNum,")
-        for key in outKeys:
-          FILE.write(key + ",")
+        FILE.write(",".join(outKeys))
         FILE.write("\n")
       # Write out fit values that match keys
       FILE.write(str(ob.name) + "," + str(fitnum) + ",")
-      for key in outKeys:
-        FILE.write(str(ob.polishedFits[fitnum][key]) + ",")
+      FILE.write(",".join([str(ob.polishedFits[fitnum][x])
+                           for x in outKeys]))
       FILE.write("\n")
       FILE.close()
     # Write out ob local fit parameters in order.
@@ -1512,13 +1542,12 @@ class Global():
       # If file exists already, don't write out header.
       if wo == "wb":
         FILE.write("Name,FitNum,")
-        for key in outKeys:
-          FILE.write(key + ",")
+        FILE.write(",".join(outKeys))
         FILE.write("\n")
       # Write out fit values that match keys
       FILE.write(str(ob.name) + "," + str(fitnum) + ",")
-      for key in outKeys:
-        FILE.write(str(ob.localFits[fitnum][key]) + ",")
+      FILE.write(",".join([str(ob.localFits[fitnum][x])
+                           for x in outKeys]))
       FILE.write("\n")
       FILE.close()
     # Write out ob MC corrupted fit parameters in order.
@@ -1530,13 +1559,12 @@ class Global():
       # If file exists already, don't write out header.
       if wo == "wb":
         FILE.write("Name,FitNum,")
-        for key in outKeys:
-          FILE.write(key + ",")
+        FILE.write(",".join(outKeys))
         FILE.write("\n")
       # Write out fit values that match keys
       FILE.write(str(ob.name) + "," + str(fitnum) + ",")
-      for key in outKeys:
-        FILE.write(str(ob.mcFits[fitnum][key]) + ",")
+      FILE.write(",".join([str(ob.mcFits[fitnum][x])
+                           for x in outKeys]))
       FILE.write("\n")
       FILE.close()
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1645,51 +1673,69 @@ class Global():
   # FitType : Flag to denote global, polished, or local fits
   #---------------------------#---------------------------# 
   def UnPackFits(self, loopNum, unParams, redChiSq, funcEvals, FitType, ob, errPars = None):
+    # Assign local red chi-square for this fit
+    # Assign number of function evals
+    ob.lRCS, ob.lFE = redChiSq, funcEvals
+    # ob.localFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
+    self.gAllD.update({x:y for x,y in zip(self.gVar, unParams)})
+    # Add error, if it exists
+    if errPars is None:
+      # Add error names, but for now give NO ERROR
+      self.gAllD.update({x:0.0 for x in self.gErr})
+    else:
+      self.gAllD.update({x:y for x,y in zip(self.gErr, errPars)})
+
+    # Map parameter and errors to ufloat to calculate indirect parameters
+    #  and propagate errors
+    pB = array([self.gAllD["pB"], self.gAllD["pB_err"]])
+    pC = array([self.gAllD["pC"], self.gAllD["pC_err"]])
+    kexAB = array([self.gAllD["kexAB"], self.gAllD["kexAB_err"]])
+    kexAC = array([self.gAllD["kexAC"], self.gAllD["kexAC_err"]])
+    kexBC = array([self.gAllD["kexBC"], self.gAllD["kexBC_err"]])
+    # Update the global parameter dictionary and errors with
+    #  indv rate constants and lifetimes calculated from pops
+    #  and overall rate constants at the given temp (Kelvin)
+    # Add to gAllD
+    self.gAllD.update(mf.CalcRateTau(pB, pC, kexAB, kexAC, kexBC, rettype="dict"))
+    # Assign indv rate constants as ufloats to be passed to CalcG func to
+    #  return free energies and errors
+    k12 = ufloat(self.gAllD["k12"], self.gAllD["k12_err"])
+    k21 = ufloat(self.gAllD["k21"], self.gAllD["k21_err"])
+    k13 = ufloat(self.gAllD["k13"], self.gAllD["k13_err"])
+    k31 = ufloat(self.gAllD["k31"], self.gAllD["k31_err"])
+    k23 = ufloat(self.gAllD["k23"], self.gAllD["k23_err"])
+    k32 = ufloat(self.gAllD["k32"], self.gAllD["k32_err"])
+    # Calculate associated free energies for given indv rate consts and pops
+    #  add to gAllD dictionary
+    self.gAllD.update(mf.CalcG(ob.te, k12, k21, k13, k31, k23, k32, pB, pC,
+                      rettype="dict"))
     # Unpack and update global fits dictionary
     if FitType.lower() == "global":
-      # Assign global red. chi-square for this fit
-      # Assign number of function evals
-      ob.gRCS, ob.gFE = redChiSq, funcEvals
-      ob.globalFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.globalFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
-      if errPars is None:
-        # Add error names, but for now give NO ERROR
-        ob.globalFits[loopNum].update({x:0.0 for x in self.gErr})
-      else:
-        ob.globalFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
+      # Map local dictionary at loop number to the gAllD
+      ob.globalFits[loopNum] = self.gAllD
+      # Add fit stats to local fit dictionary
+      ob.globalFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag,
+                                     'lf' : ob.lf, 'Temp': ob.te})
     # Unpack and update polished fits dictionary
     elif FitType.lower() == "polish":
-      # Assign polished red. chi-square for this fit
-      # Assign number of function evals
-      ob.pRCS, ob.pFE = redChiSq, funcEvals
-      ob.polishedFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.polishedFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
-      if errPars is None:
-        # Add error names, but for now give NO ERROR
-        ob.polishedFits[loopNum].update({x:0.0 for x in self.gErr})
-      else:
-        ob.polishedFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
+      # Map local dictionary at loop number to the gAllD
+      ob.polishedFits[loopNum] = self.gAllD
+      # Add fit stats to local fit dictionary
+      ob.polishedFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag,
+                                       'lf' : ob.lf, 'Temp': ob.te})
+    # Unpack and update local fits dictionary
+    elif FitType.lower() == "local":
+      # Map local dictionary at loop number to the gAllD
+      ob.localFits[loopNum] = self.gAllD
+      # Add fit stats to local fit dictionary
+      ob.localFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag,
+                                    'lf' : ob.lf, 'Temp': ob.te})
     # Unpack MC error parameter array
     elif FitType.lower() == "mcerr":
-      # Assign local red chi-square for this fit
-      # Assign number of function evals
-      ob.lRCS, ob.lFE = redChiSq, funcEvals
-      ob.mcFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.mcFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
-      if errPars is None:
-        # Add error names, but for now give NO ERROR
-        ob.mcFits[loopNum].update({x:0.0 for x in self.gErr})
-      else:
-        ob.mcFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
-    # Unpack and update local fits dictionary
-    else:
-      # Assign local red chi-square for this fit
-      # Assign number of function evals
-      ob.lRCS, ob.lFE = redChiSq, funcEvals
-      ob.localFits[loopNum] = {x:y for x,y in zip(self.gVar, unParams)}
-      ob.localFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag, "lf" : ob.lf})
-      if errPars is None:
-        # Add error names, but for now give NO ERROR
-        ob.localFits[loopNum].update({x:0.0 for x in self.gErr})
-      else:
-        ob.localFits[loopNum].update({x:y for x,y in zip(self.gErr, errPars)})
+      # Map local dictionary at loop number to the gAllD
+      ob.mcFits[loopNum] = self.gAllD
+      # Add fit stats to local fit dictionary
+      ob.mcFits[loopNum].update({'RedChiSq' : redChiSq, 'AlignMag' : ob.AlignMag,
+                                 'lf' : ob.lf, 'Temp': ob.te})
+    # Reset gAllD just to be certain
+    self.gAllD = {x:0. for x in self.gAllD.keys()}    

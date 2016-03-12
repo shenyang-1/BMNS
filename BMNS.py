@@ -35,6 +35,7 @@ from numpy.random import normal
 ### Scipy/Other General Fitting Algs ###
 from scipy.optimize import minimize # Local minimum, see Nelder-Mead
 from scipy.optimize import least_squares
+# from leastsqbound import leastsqbound    # Local LS fits with bounds
 # Uncertainties calculations
 from uncertainties import umath
 from uncertainties import ufloat
@@ -380,7 +381,8 @@ def Main():
           else:
             tP0 = gl.gP0
           # Least_squares / Lev-Mar fit
-          fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000)
+          fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
+                                 method='trf')
 
           ## Start MC error loop, if flagged
           # This will estimate R1p parameter errors as standard dev
@@ -999,20 +1001,21 @@ RandomFitStart No
 
 +
 Name %s
-lf 70.960783
+lf 150.784627
+Temp 298.2
 AlignMag Auto
 #Trelax 0.0005 0.5
 #x-axis -2000 2000
 #y-axis 0 50
-pB 0.002 1e-6 0.5
+pB 0.01 1e-6 0.5
 pC! 0.0 1e-6 0.5
-dwB 20.0 -80 80
+dwB 3.0 -80 80
 dwC! 0.0 -80 80
 kexAB 3000. 1. 50000.
 kexAC! 0.0 1. 50000.
 kexBC! 0.0 1. 50000.
 R1 2.5 1e-6 20.
-R2 6.0 1e-6 200.
+R2 16.0 1e-6 200.
 R1b! 0.0
 R2b! 0.0
 R1c! 0.0

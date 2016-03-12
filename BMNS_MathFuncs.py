@@ -42,7 +42,7 @@ def OrdMag(A, B):
 #     k12, k21, k13, k31, k23, k32 (s^-1)
 #     Tau1, Tau2, Tau3 (sec)
 #---------------------------#---------------------------#
-def CalcRateTau(pB, pC, kexAB, kexAC, kexBC):
+def CalcRateTau(pB, pC, kexAB, kexAC, kexBC, rettype="list"):
   # Unpack numpy arrays to ufloats
   pB = ufloat(pB[0], pB[1])
   pC = ufloat(pC[0], pC[1])
@@ -95,16 +95,28 @@ def CalcRateTau(pB, pC, kexAB, kexAC, kexBC):
     tau3 = 1./k31
   else:
     tau3 = ufloat(0., 0.)
-
-  return k12, k21, k13, k31, k23, k32, tau1, tau2, tau3
-
+  if rettype == "list":
+    return k12, k21, k13, k31, k23, k32, tau1, tau2, tau3
+  elif rettype == "dict":
+    # Get separate dictionaries of errors and parameter values
+    #  then combine and return the master dict
+    parD = {"pA":pA.n, "k12":k12.n, "k21":k21.n, "k13":k13.n, "k31":k31.n,
+            "k23":k23.n, "k32":k32.n, "tau1":tau1.n, "tau2":tau2.n, "tau3":tau3.n}
+    parErr = {"pA_err":pA.std_dev, "k12_err":k12.std_dev, "k21_err":k21.std_dev,
+              "k13_err":k13.std_dev, "k31_err":k31.std_dev, "k23_err":k23.std_dev,
+              "k32_err":k32.std_dev, "tau1_err":tau1.std_dev, "tau2_err":tau2.std_dev,
+              "tau3_err":tau3.std_dev}
+    retDict = parD.copy()
+    retDict.update(parErr)
+    return retDict
+              
 #---------------------------#---------------------------#
 # 'CalcRateTau' Takes in temp (K) and exchange rates
 #   as ufloats, the returns the following as ufloats:
 #     dG2, ddG12, ddG21, dG3, ddG13, ddG31, ddG23, ddG32
 #     in kcal/mol
 #---------------------------#---------------------------#
-def CalcG(te, k12, k21, k13, k31, k23, k32, pB, pC):
+def CalcG(te, k12, k21, k13, k31, k23, k32, pB, pC, rettype="list"):
   # Recast exchange rates as ufloats
   k12 = ufloat(k12.n, k12.std_dev)
   k13 = ufloat(k13.n, k13.std_dev)
@@ -116,6 +128,7 @@ def CalcG(te, k12, k21, k13, k31, k23, k32, pB, pC):
   pB = ufloat(pB[0], pB[1])
   pC = ufloat(pC[0], pC[1])
   pA = 1. - (pB + pC)
+
   # Calc kcals
   kcal = calorie * 1e3
   # Delta G's of ESs (dG) and transition barriers (ddG)
@@ -161,7 +174,20 @@ def CalcG(te, k12, k21, k13, k31, k23, k32, pB, pC):
   if k32 != 0.: 
     ddG32 = -umath.log((k32*hC)/(kB*te))*rG*te
     ddG32 = ddG32 / kcal # Convert to kcal/mol
-  return dG12, ddG12, ddG21, dG13, ddG13, ddG31, ddG23, ddG32
+  if rettype == "list":
+    return dG12, ddG12, ddG21, dG13, ddG13, ddG31, ddG23, ddG32
+  elif rettype == "dict":
+    # Get separate dictionaries of errors and parameter values
+    #  then combine and return the master dict
+    parD = {"dG12":dG12.n, "dG13":dG13.n, "ddG12":ddG12.n, "ddG21":ddG21.n,
+            "ddG13":ddG13.n, "ddG31":ddG31.n, "ddG23":ddG23.n, "ddG32":ddG32.n}
+    parErr = {"dG12_err":dG12.std_dev, "dG13_err":dG13.std_dev,
+              "ddG12_err":ddG12.std_dev, "ddG21_err":ddG21.std_dev,
+              "ddG13_err":ddG13.std_dev, "ddG31_err":ddG31.std_dev,
+              "ddG23_err":ddG23.std_dev, "ddG32_err":ddG32.std_dev}
+    retDict = parD.copy()
+    retDict.update(parErr)
+    return retDict    
 
 #---------------------------#---------------------------#
 # 'cov2corr' Takes in a covariance matrix and returns
