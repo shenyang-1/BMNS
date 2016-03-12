@@ -1468,7 +1468,13 @@ class Global():
   #  parameter bounds.
   #---------------------------#---------------------------# 
   def RandomgP0(self):
-    return array([uniform(*x) for x in self.gBnds])
+    if len(self.gBnds) == 1:
+      return array([uniform(*x) for x in self.gBnds])
+    else:
+      retArry = []
+      P0 = [uniform(x,y) for x,y in 
+            zip(self.gBnds[0], self.gBnds[1])]
+      return asarray(P0)
 
   #---------------------------#---------------------------# 
   # 'WriteFits' writes out .csv files with all the fit

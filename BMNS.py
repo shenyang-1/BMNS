@@ -307,7 +307,9 @@ def Main():
         if gl.FitType == "global":
           print "~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)  
           print "  (Adaptive Memory Programming for Global Optimums)  "    
-
+          if mcerr == True:
+            print '''   * Monte-Carlo error flagged but will not 
+                          be estimated with global fits *'''
           # Randomize initial guess, if flagged          
           if gl.rndStart == True:
             tP0 = gl.RandomgP0()
@@ -317,8 +319,8 @@ def Main():
           bnds = tuple((x,y) for x,y in zip(gl.gBnds[0], gl.gBnds[1]))
           fitted = ampgo.AMPGO(chi2, tP0, local='L-BFGS-B',
                                bounds=bnds, maxiter=5, tabulistsize=8,
-                               totaliter=10, maxfunevals=5000)
-          
+                               totaliter=10, disp=0, maxfunevals=2000)
+
           #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           ### Update Fit (global) Class Objects Here ###         
           # 1. Unpack global fitted parameters
