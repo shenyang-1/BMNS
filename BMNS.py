@@ -982,6 +982,8 @@ RandomFitStart No
 #      15N:   60.76302 (600) or  70.960783 (700)
 #      13C: 150.784627 (600) or 176.090575 (700)
 #
+# Temp [Celsius or Kelvin] : Define temperature to calculate free energies
+#
 # AlignMag [Auto/Avg/GS]
 #          Auto : calculates kex/dw and aligns mag depending on slow (gs) vs. fast (avg)
 #          Avg : Aligns magnetization/projects along average effective field of GS/ESs
@@ -1004,7 +1006,7 @@ RandomFitStart No
 +
 Name %s
 lf 150.784627
-Temp 298.2
+Temp 25
 AlignMag Auto
 #Trelax 0.0005 0.5
 #x-axis -2000 2000

@@ -922,7 +922,7 @@ class Parameters:
         # If value given is <100, assume its in oC and convert
         if self.te < 100.:
           self.te = self.te + 273.15
-          print "Assuming %s in centigrade, converting to %sK.\n" % (val[1], self.te)
+          print "Assuming %s in centigrade, converting to %sK.\n" % (inp[1], self.te)
       # Set magnetization alignment
       elif "alignmag" in pName.lower():
         self.AlignMag = inp[1].lower()
