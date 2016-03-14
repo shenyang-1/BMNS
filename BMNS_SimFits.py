@@ -81,9 +81,9 @@ class SimFit:
 
     # -- Plotting variables and their attributes -- #
     self.pltvar = {
-      "plot" : "line", # Plot type - symbol or lines or both
+      "plot" : "symbol", # Plot type - symbol or lines or both
       "line" : ["-", 1.5], # Line type
-      "symbol" : ["o", 10], # Symbol type
+      "symbol" : ["o", 13], # Symbol type
       "r1p_x" : [None, None], # Lower, upper limits of x-dimension R1p
       "r1p_y" : [None, None], # Lower, upper limits of y-dimension R1p
       "r2eff_x" : [None, None], # Lower, upper limits of x-dimension R2eff
@@ -91,8 +91,8 @@ class SimFit:
       "on_x" : [None, None], # Lower, upper limits of x-dimension OnRes
       "on_y" : [None, None], # Lower, upper limits of y-dimension OnRes
       "size" : [None, None], # Size of plots
-      "axis_fs" : [16, 16], # Plots axes font size
-      "label_fs" : [18, 18] # Label axes font size
+      "axis_fs" : [32, 32], # Plots axes font size
+      "label_fs" : [32, 32] # Label axes font size
       }
     # -- BM Parameter variables and their values -- #
     self.fitpars = {

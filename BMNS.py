@@ -42,9 +42,8 @@ from uncertainties import ufloat
 
 from joblib import Parallel, delayed  
 # import multiprocessing
-from multiprocessing import Process, Pipe, Pool
+from multiprocessing import Manager, Process, Pipe, Pool, cpu_count
 from itertools import izip
-import multiprocessing
 #########################################################################
 # Create a folder if it does not already exist #
 #########################################################################
@@ -406,12 +405,12 @@ def Main():
                   break
               q_out.put((i,f(x)))
 
-          def parmap(f, X, nprocs = multiprocessing.cpu_count()):
-              m = multiprocessing.Manager()
+          def parmap(f, X, nprocs = cpu_count()):
+              m = Manager()
               q_in   = m.Queue(1)
               q_out  = m.Queue()
 
-              proc = [multiprocessing.Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
+              proc = [Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
               for p in proc:
                 p.daemon = True
                 p.start()
@@ -438,7 +437,7 @@ def Main():
           # This will estimate R1p parameter errors as standard dev
           #  from MC normal error corruption and re-fit of R1p vals
           if mcerr == True:
-            nprocs = multiprocessing.cpu_count()
+            nprocs = cpu_count()
             print "          Monte-Carlo Parameter Error Propgation"
             print "             (%s iterations across %s cores)" % (fitMC, nprocs)
             MCpars = array(parmap(MC_loop, range(fitMC)))
@@ -815,19 +814,19 @@ Params
 #Read pars.csv
 lf 150.784627
 AlignMag Auto
-pB 0.05
+pB 0.01
 pC 0.0
 dwB 3.0
 dwC 0.0
-kexAB 1000.0
+kexAB 3000.0
 kexAC 0.0
 kexBC 0.0
-R1 2.0
-R2 20.0
-R1b 2.0
-R2b 20.0
-R1c 2.0
-R2c 20.0
+R1 2.5
+R2 16.0
+R1b 2.5
+R2b 16.0
+R1c 2.5
+R2c 16.0
 
 ##################################################################################
 # "SLOFF" block defines spinlock powers and offsets to simulate with BM.
@@ -958,16 +957,16 @@ MCNum 500
 +
 Plot line
 Line - 2
-Symbol o 10
-Size 12 8
+Symbol o 13
+Size 10 8
 #R1p_x None 1000
 #R1p_y 0 100
 #R2eff_x -1000 1000
 #R2eff_y 0 100
 On_x 0 None
 #On_y 0 50
-Axis_FS 18 18
-Label_FS 22 22
+Axis_FS 32 32
+Label_FS 32 32
 
 '''
     outPath = os.path.join(curDir, sys.argv[2])
