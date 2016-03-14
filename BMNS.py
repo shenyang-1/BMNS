@@ -31,7 +31,7 @@ from numpy import nan_to_num
 from numpy import sqrt
 from numpy import zeros
 ### Numpy sub imports ###
-from numpy.random import normal
+from numpy.random import normal, seed
 ### Scipy/Other General Fitting Algs ###
 from scipy.optimize import minimize # Local minimum, see Nelder-Mead
 from scipy.optimize import least_squares
@@ -40,6 +40,11 @@ from scipy.optimize import least_squares
 from uncertainties import umath
 from uncertainties import ufloat
 
+from joblib import Parallel, delayed  
+# import multiprocessing
+from multiprocessing import Process, Pipe, Pool
+from itertools import izip
+import multiprocessing
 #########################################################################
 # Create a folder if it does not already exist #
 #########################################################################
@@ -386,24 +391,77 @@ def Main():
           fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
                                  method='trf')
 
+          #########################################################################
+          # Monte-Carlo multiprocessing functions used to avoid
+          #  pickling error in multiprocessing.Process function
+          #  when function called within function
+          # Used from: http://stackoverflow.com/questions/3288595/
+          #            multiprocessing-using-pool-map-on-a-function-defined-in-a-class
+          #########################################################################
+          
+          def fun(f,q_in,q_out):
+            while True:
+              i,x = q_in.get()
+              if i is None:
+                  break
+              q_out.put((i,f(x)))
+
+          def parmap(f, X, nprocs = multiprocessing.cpu_count()):
+              m = multiprocessing.Manager()
+              q_in   = m.Queue(1)
+              q_out  = m.Queue()
+
+              proc = [multiprocessing.Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
+              for p in proc:
+                p.daemon = True
+                p.start()
+
+              sent = [q_in.put((i,x)) for i,x in enumerate(X)]
+              [q_in.put((None,None)) for _ in range(nprocs)]
+              res = [q_out.get() for _ in range(len(sent))]
+              [p.join() for p in proc]
+
+              return [x for i,x in sorted(res)]
+
+          # Define the Monte-Carlo random corrupt look
+          def MC_loop(i):
+            # Iterate over sub ojects in fit
+            for ob in gl.gObs:
+              # Define a seed based on loop number
+              seed(i)
+              ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
+            # Fit noise-corrupted R1p data, append fits only to list
+            fits = (least_squares(residual, fitted.x, bounds = gl.gBnds,
+                                  max_nfev=10000, args=([True])).x)
+            return fits
           ## Start MC error loop, if flagged
           # This will estimate R1p parameter errors as standard dev
           #  from MC normal error corruption and re-fit of R1p vals
           if mcerr == True:
-            tpars = []
-            # Error corrupt R1p values normally around mu=R1p, sigma=R1p_err
-            for i in range(fitMC):
-              # Print out MC iteration number to terminal - flush
-              sys.stdout.write("\r    --- Monte-Carlo Error Estimation (%s of %s) ---" % (i+1, fitMC))
-              sys.stdout.flush()             
-              # Iterate over sub ojects in fit
-              for ob in gl.gObs:
-                ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
-              # Fit noise-corrupted R1p data, append fits only to list
-              tpars.append(least_squares(residual, fitted.x, bounds = gl.gBnds, max_nfev=10000,
-                                                                  args=([True])).x)
-            # Combine all fit parameters to one numpy array
-            MCpars = asarray(tpars).astype(float64)
+            nprocs = multiprocessing.cpu_count()
+            print "          Monte-Carlo Parameter Error Propgation"
+            print "             (%s iterations across %s cores)" % (fitMC, nprocs)
+            MCpars = array(parmap(MC_loop, range(fitMC)))
+
+# ------ OLD MC error corruption below -------#
+          # ## Start MC error loop, if flagged
+          # # This will estimate R1p parameter errors as standard dev
+          # #  from MC normal error corruption and re-fit of R1p vals
+          # if mcerr == True:
+          #   tpars = []
+          #   # Error corrupt R1p values normally around mu=R1p, sigma=R1p_err
+          #   for i in range(fitMC):
+          #     # Print out MC iteration number to terminal - flush
+          #     sys.stdout.write("\r    --- Monte-Carlo Error Estimation (%s of %s) ---" % (i+1, fitMC))
+          #     sys.stdout.flush()             
+          #     # Iterate over sub ojects in fit
+          #     for ob in gl.gObs:
+          #       ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
+          #     # Fit noise-corrupted R1p data, append fits only to list
+          #     tpars.append(least_squares(residual, fitted.x, bounds = gl.gBnds, max_nfev=10000,
+          #                                                         args=([True])).x)
+          #   # Combine all fit parameters to one numpy array
+          #   MCpars = asarray(tpars).astype(float64)
 
           #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           ### Update Fit (local) Class Objects Here ###         
