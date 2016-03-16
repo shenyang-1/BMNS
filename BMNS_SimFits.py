@@ -558,6 +558,7 @@ class SimFit:
         plt.ylabel(r'$Intensity$', size=self.pltvar['label_fs'][1])
         # -- Set axes font sizes -- #
         rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
+        plt.tight_layout()
         pp.savefig()
         plt.close(fig)
         plt.clf()
