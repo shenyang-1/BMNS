@@ -24,7 +24,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
     """
     Finds the global minimum of a function using the AMPGO (Adaptive Memory Programming for
     Global Optimization) algorithm. 
-    
+
     :param `objfun`: Function to be optimized, in the form ``f(x, *args)``.
     :type `objfun`: callable
     :param `args`: Additional arguments passed to `objfun`.
@@ -59,7 +59,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
     :param `disp`: If zero or defaulted, then no output is printed on screen. If a positive number, then status
      messages are printed.
     :type `disp`: integer
- 
+
     :returns: A tuple of 5 elements, in the following order:
 
      1. **best_x** (`array_like`): the estimated position of the global minimum.
@@ -78,7 +78,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
 
     Copyright 2014 Andrea Gavana
     """
-   
+
     if local not in SCIPY_LOCAL_SOLVERS + OPENOPT_LOCAL_SOLVERS:
         raise Exception('Invalid local solver selected: %s'%local)
 
@@ -87,7 +87,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
 
     if local in OPENOPT_LOCAL_SOLVERS and not OPENOPT:
         raise Exception('The selected solver %s is not available as there is no OpenOpt installation'%local)
-        
+
     x0 = numpy.atleast_1d(x0)
     n = len(x0)
 
@@ -131,7 +131,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
     tabulist = []
     best_f = numpy.inf
     best_x = x0
-    
+
     global_iter = 0
     all_tunnel = success_tunnel = 0
     evaluations = 0
@@ -152,7 +152,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
         if local in OPENOPT_LOCAL_SOLVERS:
             problem = NLP(objfun, x0, lb=low, ub=up, maxFunEvals=max(1, maxfunevals), ftol=local_tol, iprint=iprint)
             problem.args = args
-            
+
             results = problem._solve(local)
             xf, yf, num_fun = results.xf, results.ff, results.evals['f']
         else:
@@ -161,7 +161,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
                 options.update(local_opts)
             res = minimize(objfun, x0, args=args, method=local, bounds=bounds, tol=local_tol, options=options)
             xf, yf, num_fun = res['x'], res['fun'], res['nfev']
-        
+
         maxfunevals -= num_fun
         evaluations += num_fun
 
@@ -171,7 +171,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
 
         if disp > 0:
             print('\n\n ==> Reached local minimum: %s\n'%yf)
-        
+
         if best_f < fmin + glbtol:
             if disp > 0:
                 print('='*72)
@@ -194,13 +194,13 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
                 print('-'*72)
 
             all_tunnel += 1
-            
+
             r = numpy.random.uniform(-1.0, 1.0, size=(n, ))
             beta = eps2*numpy.linalg.norm(xf)/numpy.linalg.norm(r)
-            
+
             if numpy.abs(beta) < 1e-8:
                 beta = eps2
-                
+
             x0  = xf + beta*r
 
             x0 = numpy.where(x0 < low, low, x0)
@@ -213,7 +213,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
             if local in OPENOPT_LOCAL_SOLVERS:
                 problem = NLP(tunnel, x0, lb=low, ub=up, maxFunEvals=max(1, maxfunevals), ftol=local_tol, iprint=iprint)
                 problem.args = tunnel_args
-                
+
                 results = problem.solve(local)
                 xf, yf, num_fun = results.xf, results.ff, results.evals['f']
             else:
@@ -243,7 +243,7 @@ def AMPGO(objfun, x0, args=(), local='L-BFGS-B', local_opts=None, bounds=None, m
                 return best_x, best_f, evaluations, 'Optimization terminated successfully', (all_tunnel, success_tunnel)
 
             i += 1
-                        
+
             if maxfunevals <= 0:
                 return best_x, best_f, evaluations, 'Maximum number of function evaluations exceeded', (all_tunnel, success_tunnel)
 
@@ -267,7 +267,7 @@ def drop_tabu_points(xf, tabulist, tabulistsize, tabustrategy):
 
     if len(tabulist) < tabulistsize:
         return tabulist
-    
+
     if tabustrategy == 'oldest':
         tabulist.pop(0)
     else:
@@ -305,7 +305,7 @@ def inverse_tunnel(xtf, ytf, aspiration, tabulist):
         denominator = denominator*numpy.sqrt(numpy.sum((xtf - tabu)**2))
 
     numerator = ytf*denominator
-    
+
     yf = aspiration + numpy.sqrt(ytf*denominator)
     return yf
 
@@ -318,7 +318,7 @@ if __name__ == '__main__':
     os.system('cls')
 
     for tests in ['Bird']:
-        
+
         klass = getattr(go_benchmark, tests)()
 
         x0 = klass.generator()
@@ -333,7 +333,7 @@ if __name__ == '__main__':
         xb = numpy.asarray(klass.global_optimum)
         if xb.ndim == 2:
             xb = xb[0, :]
-            
+
         print('\n\n')
         print('F_glob :', klass.evaluator(xb))
         print('F_best :', yf)
