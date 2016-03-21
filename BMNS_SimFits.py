@@ -10,6 +10,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_pdf import PdfPages
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
+
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
 #########################################################################
@@ -92,7 +93,8 @@ class SimFit:
           "on_y" : [None, None], # Lower, upper limits of y-dimension OnRes
           "size" : [None, None], # Size of plots
           "axis_fs" : [32, 32], # Plots axes font size
-          "label_fs" : [32, 32] # Label axes font size
+          "label_fs" : [32, 32], # Label axes font size
+          "labels" : True # Do or do not plot labels
           }
         # -- BM Parameter variables and their values -- #
         self.fitpars = {
@@ -377,6 +379,10 @@ class SimFit:
             # Assign plotting type
             elif i[0].lower() == "plot" and len(i) == 2:
                 self.pltvar[i[0].lower()] = i[1]
+            # labels on or off
+            elif i[0].lower() == "labels" and len(i) == 2:
+                if i[1].lower() == "off":
+                    self.pltvar[i[0].lower()] = False
 
     #########################################################################
     # checkNums - Takes in an N-length list and checks that the values are
@@ -676,7 +682,12 @@ class SimFit:
             handles, labels = ax.get_legend_handles_labels()
             handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
             # Create legend object using these handles and labels
-            legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+            # Legend title, depending on labels flag
+            if self.pltvar['labels'] == False:
+                leg_ttl = " "
+            else:
+                leg_ttl = r'$\omega\,2\pi^{-1}\,{(Hz)}$'
+            legend = ax.legend(handles, labels, title=leg_ttl, numpoints=1,
                                 fancybox=False, ncol=2, handlelength=0, frameon=False,
                                 columnspacing=0.0, markerscale=0.0000001, handletextpad=0.5)
 
@@ -718,7 +729,12 @@ class SimFit:
                 ymax = self.pltvar['r1p_y'][1]    
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
-            plt.tight_layout()
+            # Don't add labels
+            if self.pltvar['labels'] == False:
+                plt.xlabel("")
+                plt.ylabel("")
+            else:                    
+                plt.tight_layout()
             figp = os.path.join(figp, "sim-R1rho-OffRes.pdf")
             plt.savefig(figp, transparent=True)
             plt.close(fig)
@@ -836,7 +852,12 @@ class SimFit:
             handles, labels = ax.get_legend_handles_labels()
             handles = [h[0] if type(h) is not mpl.lines.Line2D else h for h in handles]
             # Create legend object using these handles and labels
-            legend = ax.legend(handles, labels, title=r'$\omega\,2\pi^{-1}\,{(Hz)}$',numpoints=1,
+            # Legend title, depending on labels flag
+            if self.pltvar['labels'] == False:
+                leg_ttl = " "
+            else:
+                leg_ttl = r'$\omega\,2\pi^{-1}\,{(Hz)}$'
+            legend = ax.legend(handles, labels, title=leg_ttl, numpoints=1,
                                 fancybox=False, ncol=2, handlelength=0, frameon=False,
                                 columnspacing=0.0, markerscale=0.0000001, handletextpad=0.2,
                                 borderpad=0, handleheight=0, labelspacing=0.2)
@@ -879,7 +900,12 @@ class SimFit:
                 ymax = self.pltvar['r2eff_y'][1]    
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
-            plt.tight_layout()
+            # Don't add labels
+            if self.pltvar['labels'] == False:
+                plt.xlabel("")
+                plt.ylabel("")
+            else:                    
+                plt.tight_layout()
             figp = os.path.join(figp, "sim-R2eff.pdf")
             plt.savefig(figp, transparent=True)
             plt.close(fig)
@@ -973,7 +999,12 @@ class SimFit:
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
             figp = os.path.join(figp, "sim-R1p-OnRes.pdf")
-            plt.tight_layout()
+            # Don't add labels
+            if self.pltvar['labels'] == False:
+                plt.xlabel("")
+                plt.ylabel("")
+            else:                    
+                plt.tight_layout()
             plt.savefig(figp, transparent=True)
             plt.close(fig)
             plt.clf()
