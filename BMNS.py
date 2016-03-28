@@ -390,60 +390,6 @@ def Main():
                     fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
                                            method='trf')
 
-                    #########################################################################
-                    # Monte-Carlo multiprocessing functions used to avoid
-                    #  pickling error in multiprocessing.Process function
-                    #  when function called within function
-                    # Used from: http://stackoverflow.com/questions/3288595/
-                    #            multiprocessing-using-pool-map-on-a-function-defined-in-a-class
-                    #########################################################################
-
-                    # def fun(f,q_in,q_out):
-                    #   while True:
-                    #     i,x = q_in.get()
-                    #     if i is None:
-                    #         break
-                    #     q_out.put((i,f(x)))
-
-                    # def parmap(f, X, nprocs = cpu_count()):
-                    #     m = Manager()
-                    #     q_in   = m.Queue(1)
-                    #     q_out  = m.Queue()
-
-                    #     proc = [Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
-                    #     for p in proc:
-                    #       p.daemon = True
-                    #       p.start()
-
-                    #     sent = [q_in.put((i,x)) for i,x in enumerate(X)]
-                    #     [q_in.put((None,None)) for _ in range(nprocs)]
-                    #     res = [q_out.get() for _ in range(len(sent))]
-                    #     [p.join() for p in proc]
-
-                    #     return [x for i,x in sorted(res)]
-
-                    # # Define the Monte-Carlo random corrupt look
-                    # def MC_loop(i):
-                    #   # Iterate over sub ojects in fit
-                    #   for ob in gl.gObs:
-                    #     # Define a random seed - prevents parallel processing
-                    #     #    from using the same seed for each batch
-                    #     seed(None)
-                    #     ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
-                    #   # Fit noise-corrupted R1p data, append fits only to list
-                    #   fits = (least_squares(residual, fitted.x, bounds = gl.gBnds,
-                    #                         max_nfev=10000, args=([True])).x)
-                    #   return fits
-                    # ## Start MC error loop, if flagged
-                    # # This will estimate R1p parameter errors as standard dev
-                    # #  from MC normal error corruption and re-fit of R1p vals
-                    # if mcerr == True:
-                    #   nprocs = cpu_count()
-                    #   print "          Monte-Carlo Parameter Error Propgation"
-                    #   print "             (%s iterations across %s cores)" % (fitMC, nprocs)
-                    #   MCpars = array(parmap(MC_loop, range(fitMC)))
-
-# ------ OLD MC error corruption below -------#
                     ## Start MC error loop, if flagged
                     # This will estimate R1p parameter errors as standard dev
                     #  from MC normal error corruption and re-fit of R1p vals
@@ -581,44 +527,6 @@ def Main():
                     # Split brute fitting over N-cores
                     allfits = parmap(Brute_loop, range(len(gl.brutegP0)))
                     allfits = dict(allfits[0])
-
-                    # # Loop over all P0 arrays in brute-force array
-                    # for idx, gf in enumerate(gl.brutegP0):
-                    #     sys.stdout.write("\r--- BRUTE FORCE PARAMETERS (%s of %s) ---" % (idx+1, len(gl.brutegP0)))
-                    #     sys.stdout.flush()
-                    #     # Don't let it fit, just 1 iteration
-                    #     fitted = least_squares(residual, gf, bounds = gl.gBnds, max_nfev=1)       
-                    #     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    #     ### Update Fit (local) Class Objects Here ###         
-                    #     # 1. Unpack local fitted parameters
-                    #     # 2. Write out fits and reduced chi^2 (chi-sq/dof)
-                    #     # 3. Write out graphs of fitted R1rho and R2+Rex and the residuals
-                    #     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    #     for ob in gl.gObs:
-                    #         # Reduced chi-square = chi-square / (N (data points) - M (free parameters))
-                    #         chisq = chi2(fitted.x)
-                    #         redChiSq = chisq / gl.dof
-                    #         # Store all the fits
-                    #         allfits[redChiSq] = gf
-
-                    #         # Calculate fit error
-                    #         #   Here: Standard error of the fit is used
-                    #         fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun, fitted.jac, gl.dof)
-
-                    #         # Unpack global fit param array to local values for Fit object
-                    #         gl.UnPackFits(idx+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
-                    #                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
-                    #         # Write out / append latest fit data
-                    #         gl.WriteFits(outPath, ob, idx+1, "local")       
-
-                    #         # If flagged in input file, generate graphs for all curves
-                    #         if gl.FitType == "brutep":
-                    #             # Graph fitted data with trend-lines, and also export R1rho/R2eff values
-                    #             grph.WriteGraph(ob, outLocal, idx+1, ob.time, FitType="local", FitEqn=gl.gFitEqn)
-
-                    #         # Calculate fit stats
-                    #         sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
-                    #                       gl.freePars, chisq, redChiSq, idx+1, "local", matrices=False)
 
                     # Start the last fit, from the best fit
                     print "\n    Lowest red. chi-square found. Minimizing within bounds.    "
