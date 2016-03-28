@@ -200,6 +200,7 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
     ##### AVG Magnetization Alignment ####
     ######################################
     elif AlignMag == "avg":
+
         ## Along Avg calculation ##  
         #Calculate Resonant Frequencies of GS, ES1, ES2 (in Hz)
         uOmega1 = -(pB*dwB + pC*dwC) / ((pA + pB + pC)) # (rad/sec)
@@ -616,6 +617,11 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
     R2,R2b,R2c = ParD['r2'], ParD['r2b'], ParD['r2c']
     lf, AlignMag = ParD['lf'], ParD['alignmag']
     pA = 1. - (pB + pC)
+    # print pB, pC
+    # print kexAB, kexAC, kexBC
+    # print dwB, dwC
+    # print R1,R1b,R1c
+    # print R2,R2b,R2c
 
     ################################
     ##### Pre-run Calculations #####
@@ -711,7 +717,8 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
                 R1p = popt[1]
                 R1p_err = 0.0
                 preExp = popt[0]
-
+                if w1/(2.*pi) == 500. and wrf/(2.*pi) == 1000.:
+                    print w1/(2.*pi), wrf/(2.*pi), R1p
         else:
             R1p = 0.0
             R1p_err = 0.0
