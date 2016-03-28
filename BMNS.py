@@ -159,6 +159,9 @@ def Main():
             bme.HandleErrors(errBool, retMsg)
             # Convert semi-raw data to Data class objects
             i.ConvertData(pInp.DataInp[i.FitNum])
+            # Randomly remove data if flagged
+            if i.deldata != 0.0:
+                i.rnd_rem_data(i.deldata)
 
         ## Grab fit types
         gl.GrabFitType(pInp.FitType)
@@ -1019,6 +1022,9 @@ RandomFitStart No
 # lf = Larmor frequency (MHz) of the nucleus of interest
 #      15N:   60.76302 (600) or  70.960783 (700)
 #      13C: 150.784627 (600) or 176.090575 (700)
+#
+# (optional) rnddel = Fraction of data to be randomly deleted before fit
+#                     e.g 'rnddel 0.1' would randomly delete 10pct of data
 #
 # Temp [Celsius or Kelvin] : Define temperature to calculate free energies
 #

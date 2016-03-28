@@ -3,6 +3,11 @@
 #  Isaac Kimsey
 #########################################################################
 
+Mar 28 2016
+************
+- Added multi-core support for brute-force parameter search
+- Added 'rnddel' input parameter flag to randomly delete x% of data prior to fit.
+
 Mar 11 2016
 ************
 - Added Monte-Carlo parameter error estimation through the '-fitmc' command.

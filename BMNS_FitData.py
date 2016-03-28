@@ -21,7 +21,7 @@ from numpy import interp
 from numpy import linspace, logspace, log10
 from numpy import shape
 ### Numpy sub imports ###
-from numpy.random import uniform
+from numpy.random import choice, uniform
 from numpy.core.defchararray import rstrip
 ### Matplotlib imports ###
 import matplotlib.pyplot as plt
@@ -488,7 +488,7 @@ class Parse:
         # Variables expected to be in the input parameter file
         #  excludes potential shared fit flags ('*')
         self.Variables = ["Name","lf","pB","pC","dwB","dwC","kexAB","kexAC","kexBC","R1","R2","R1b","R1c","R2b","R2c","Temp"]
-        self.AltFlags = ["x-axis", "y-axis", "trelax", "alignmag"]
+        self.AltFlags = ["x-axis", "y-axis", "trelax", "alignmag", "rnddel"]
         self.ParInp = []  # Store semi-raw parameters read from file
                           #  Sub lists for each '+' delimited parameter block
         self.DataInp = [] # Store semi-raw data read from files
@@ -854,6 +854,9 @@ class Parameters:
         self.tMax = 0.25
         self.time = linspace(0.0, self.tMax, self.tMax / self.tInc)
 
+        # Percentage of data to be randomly deleted
+        self.deldata = 0.0
+
     #---------------------------#---------------------------#
     # Grabs parameter values of Pars dict and returns
     #  a numpy array with these values in order:
@@ -938,6 +941,14 @@ class Parameters:
                 self.tInc = float(inp[1])
                 self.tMax = float(inp[2])
                 self.SetTime() # Reset time numpy array
+            # Randomly delete some data
+            elif "rnddel" in pName.lower():
+                try:
+                    # Percentage of data to remove
+                    self.deldata = float(inp[1])
+                except ValueError:
+                    print "Incorrect percentage assigned to be randomly removed."
+                    print "Ignoring flag and using all data in fit."
             else:
                 # Assign initial value for given parameter
                 self.Pars[pName][0] = float(inp[1])        
@@ -1091,6 +1102,18 @@ class Data:
             self.R1pD = self.R1pD[:,0:4]
         else:
             self.Err = False
+
+    #---------------------------#---------------------------#
+    # Takes a numerical value from 0-1 and translates
+    # that as the percetange of data to be randomly
+    # removed from the data to be fit.
+    #---------------------------#---------------------------#
+    def rnd_rem_data(self, pct):
+        if 0. < pct <= 1.:
+            self.R1pD = self.R1pD[choice(self.R1pD.shape[0],
+                                  len(self.R1pD[:,0]) - 
+                                  len(self.R1pD[:,0]) * pct,
+                                  replace=False),:]
 
 #########################################################################
 # *Fits class* is used to store fits of inherited data to the 
