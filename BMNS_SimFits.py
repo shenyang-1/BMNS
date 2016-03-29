@@ -979,11 +979,17 @@ class SimFit:
             rcParams.update({'font.size': self.pltvar['axis_fs'][0]})
             # -- Set X-axes limits -- #
             if self.pltvar['on_x'][0] is None:
-                xmin = n[:,1].min() * 1.05
+                try:
+                    xmin = n[:,1].min() * 1.05
+                except ValueError:
+                    xmin = 0.0
             else:
                 xmin = self.pltvar['on_x'][0]
             if self.pltvar['on_x'][1] is None:
-                xmax = n[:,1].max() * 1.05
+                try:
+                    xmax = n[:,1].max() * 1.05
+                except ValueError:
+                    xmax = 3500.
             else:
                 xmax = self.pltvar['on_x'][1]    
             plt.xlim(xmin/1e3, xmax/1e3)
@@ -993,7 +999,10 @@ class SimFit:
             else:
                 ymin = self.pltvar['on_y'][0]
             if self.pltvar['on_y'][1] is None:
-                ymax = self.R1pV[:,2].max() * 1.05
+                try:
+                    ymax = self.R1pV[:,2].max() * 1.05
+                except ValueError:
+                    ymax = 100.
             else:
                 ymax = self.pltvar['on_y'][1]    
             plt.ylim(ymin, ymax)
