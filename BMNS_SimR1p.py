@@ -247,24 +247,12 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
         uOmega3 = uOmega1 + dwC # (rad/sec)
         uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 # Resonance Offset (rad/sec) wrt GS
                                                             # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
-        # print w1/(2.*pi), wrf/(2.*pi)
-        # print "uOmega1", uOmega1/(2.*pi)
-        # print "uOmega2", uOmega2/(2.*pi)
-        # print "uOmega3", uOmega3/(2.*pi)
-        # print "uOmegaAvg", uOmegaAvg/(2.*pi)
-        # print "-----------------"
 
         # Offsets wrt GS
         uOmega2 = uOmega2 - uOmega1                                                
         uOmega3 = uOmega3 - uOmega1  
         uOmegaAvg = uOmegaAvg - uOmega1
         uOmega1 = uOmega1 - uOmega1
-        # print w1/(2.*pi), wrf/(2.*pi)
-        # print "uOmega1", uOmega1/(2.*pi)
-        # print "uOmega2", uOmega2/(2.*pi)
-        # print "uOmega3", uOmega3/(2.*pi)
-        # print "uOmegaAvg", uOmegaAvg/(2.*pi)
-        # print "*************************"
 
         # Calculate resonance offset from the carrier (wrf, ie. spinlock offset)
         # delta(uOmega) = uOmega-bar - lOmega_rf (rad/s)
@@ -273,13 +261,7 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
         delta2 = (uOmega2 - wrf) # rad/s
         delta3 = (uOmega3 - wrf) # rad/s
         deltaAvg = (uOmega1 - wrf) # rad/s, avg delta is GS - carrier
-        # print w1/(2.*pi), wrf/(2.*pi)
-        # print "delta1", delta1/(2.*pi)
-        # print "delta2", delta2/(2.*pi)
-        # print "delta3", delta3/(2.*pi)
-        # print "deltaAvg", deltaAvg/(2.*pi)
-        # print "/////////////////////////////"
-        # sys.exit()
+
         # Because need to calculate arctan instead of arcot, delta is in denominator
         # When on-res, arcot(0/w1*2pi) == pi/2,
         #  However, arctan(w1*2pi/0) is undefined
@@ -717,8 +699,7 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
                 R1p = popt[1]
                 R1p_err = 0.0
                 preExp = popt[0]
-                if w1/(2.*pi) == 500. and wrf/(2.*pi) == 1000.:
-                    print w1/(2.*pi), wrf/(2.*pi), R1p
+
         else:
             R1p = 0.0
             R1p_err = 0.0
