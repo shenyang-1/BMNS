@@ -73,7 +73,7 @@ class SimFit:
         self.data = [] # Real R1rho data to be plotted
         self.rhoerr = 0.0 # Noise corruption pct for R1p values
         self.rhomc = 500  # Number of monte carlo iterations for noise corruption
-
+        self.fitflag = "bm" # Flag BM or Laguerre fitting
         # -- Simulation Decaying Intensity values -- #
         self.vdlist = np.linspace(0.0, 0.25, 51)
         self.decerr = 0.0 # Noise corruption pct for intensities
@@ -127,18 +127,22 @@ class SimFit:
     #          self-given parameters
     #########################################################################
     def simFit(self):
-        # Simulate R1p, R2eff, vectors, eigenvalues, etc at different SLP offsets
-        for of, sl in zip(self.slonoff[:,0], self.slonoff[:,1]):
-            a, b, c = sim.BMSim(self.fitpars, -of, sl, self.vdlist, self.decerr, self.decmc,
-                                self.rhoerr, self.rhomc)
-            self.R1pV.append(a)
-            self.magVecs.append(b)
-            self.eigVals.append(c)
-        # Convert all lists to numpy arrays
-        self.R1pV = np.asarray(self.R1pV)
-        self.R1pV = np.append(self.slonoff, self.R1pV, axis=1)
-        self.magVecs = np.asarray(self.magVecs).astype(np.float64)
-        self.eigVals = np.asarray(self.eigVals).astype(np.float64)
+        if self.fitflag != "bm":
+            pass
+        else:
+            # Simulate R1p, R2eff, vectors, eigenvalues, etc at different SLP offsets
+            for of, sl in zip(self.slonoff[:,0], self.slonoff[:,1]):
+                a, b, c = sim.BMSim(self.fitpars, -of, sl, self.vdlist,
+                                    self.decerr, self.decmc,
+                                    self.rhoerr, self.rhomc)
+                self.R1pV.append(a)
+                self.magVecs.append(b)
+                self.eigVals.append(c)
+            # Convert all lists to numpy arrays
+            self.R1pV = np.asarray(self.R1pV)
+            self.R1pV = np.append(self.slonoff, self.R1pV, axis=1)
+            self.magVecs = np.asarray(self.magVecs).astype(np.float64)
+            self.eigVals = np.asarray(self.eigVals).astype(np.float64)
 
     #########################################################################
     # plotR1p - Writes out R1rho values
@@ -533,6 +537,9 @@ class SimFit:
     # plotDec - Plots monoexponential decays
     #########################################################################
     def plotDec(self, figp):
+        # Plotting default settings
+        mpl.rcParams['pdf.fonttype'] = 42
+        mpl.rcParams['font.sans-serif'] = 'arial'
         if self.plotdec == "yes":
             # output path
             figp = os.path.join(figp, "sim-decaycurves.pdf")
@@ -575,6 +582,9 @@ class SimFit:
     # plotR1p - Plots R1rho values
     #########################################################################
     def plotR1p(self, figp):
+        # Plotting default settings
+        mpl.rcParams['pdf.fonttype'] = 42
+        mpl.rcParams['font.sans-serif'] = 'arial'
         # Find unique SLPs for on/off-res
         if self.sloff is not None:
             # If real data exists, need to split it as well
@@ -744,6 +754,9 @@ class SimFit:
     # plotR2eff - Plots R2eff values
     #########################################################################
     def plotR2eff(self, figp):
+        # Plotting default settings
+        mpl.rcParams['pdf.fonttype'] = 42
+        mpl.rcParams['font.sans-serif'] = 'arial'
         # Find unique SLPs for on/off-res
         if self.sloff is not None:
             # If real data exists, need to split it as well
@@ -915,6 +928,9 @@ class SimFit:
     # plotOnRes - Plots R1rho values
     #########################################################################
     def plotOnRes(self, figp):
+        # Plotting default settings
+        mpl.rcParams['pdf.fonttype'] = 42
+        mpl.rcParams['font.sans-serif'] = 'arial'
         # Find unique SLPs for on/off-res
         if self.slon is not None:
             mpl.rcParams['pdf.fonttype'] = 42

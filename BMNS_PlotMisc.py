@@ -14,6 +14,9 @@ import BMNS_Stats as sf
 #   red. chi square and normalized red. chi square
 #---------------------------#---------------------------# 
 def PlotBrute(args, outPath):
+    # Plotting default settings
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.sans-serif'] = 'arial'
     fitp = os.path.join(outPath, sys.argv[2])
     # Check that fit file exists
     if os.path.isfile(fitp):
@@ -89,7 +92,7 @@ def PlotBrute(args, outPath):
                 plt.yscale("log")
             rcParams.update({'font.size': 16})
             plt.tight_layout(2)
-            plt.savefig("WeightedContour_%s_vs_%s.pdf" % (p1,p2))
+            plt.savefig("WeightedContour_%s_vs_%s.pdf" % (p1,p2), transparent=True)
             plt.close(fig)
             plt.clf()
 
