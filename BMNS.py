@@ -810,7 +810,7 @@ def Main():
     #  arg3 Parameter name 1
     #  arg4 Parameter name 2
     #---------------------------------------------------
-    elif sys.argv[1].lower() == "-plotbrute":
+    elif sys.argv[1].lower() == "-plotbrute" or sys.argv[1].lower() == "-plotbrute0":
         pm.PlotBrute(sys.argv, curDir)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

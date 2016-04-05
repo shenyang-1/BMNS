@@ -582,9 +582,6 @@ class SimFit:
     # plotR1p - Plots R1rho values
     #########################################################################
     def plotR1p(self, figp):
-        # Plotting default settings
-        mpl.rcParams['pdf.fonttype'] = 42
-        mpl.rcParams['font.sans-serif'] = 'arial'
         # Find unique SLPs for on/off-res
         if self.sloff is not None:
             # If real data exists, need to split it as well
@@ -754,9 +751,6 @@ class SimFit:
     # plotR2eff - Plots R2eff values
     #########################################################################
     def plotR2eff(self, figp):
-        # Plotting default settings
-        mpl.rcParams['pdf.fonttype'] = 42
-        mpl.rcParams['font.sans-serif'] = 'arial'
         # Find unique SLPs for on/off-res
         if self.sloff is not None:
             # If real data exists, need to split it as well
