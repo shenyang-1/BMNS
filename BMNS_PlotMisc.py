@@ -58,7 +58,7 @@ def PlotBrute(args, outPath):
             zs = np.array([sf.cnICwt(drs, dRCS) for drs in dRCS])
 
             # -- Plot Red. Chi-Square Contours -- #
-            fig = plt.figure(figsize=(8, 8), dpi=100)
+            fig = plt.figure(figsize=(12, 8), dpi=100)
             CS = plt.tricontourf(x,y,z, 100)
             if fitflag == "-plotbrute":
                 cbar = plt.colorbar(CS)
@@ -66,7 +66,7 @@ def PlotBrute(args, outPath):
                 plt.title(r'$\overline{\chi}^2\,plot$',fontsize=24)
                 plt.xlabel(r'$%s$' % p1, fontsize=24)
                 plt.ylabel(r'$%s$' % p2, fontsize=24)
-            plt.xticks(np.linspace(round(x.min(), -3), round(x.max(), -3), 5))
+            # plt.xticks(np.linspace(round(x.min(), -3), round(x.max(), -3), 5))
             plt.xlim(x.min(), x.max())
             # Set log scales as needed if scale is greater than 2 orders of magnitude
             if om1 > 2:
@@ -80,7 +80,7 @@ def PlotBrute(args, outPath):
             plt.clf()
 
             # -- Plot Normalized Red. Chi-Square Contours -- #
-            fig = plt.figure(figsize=(8, 8), dpi=100)
+            fig = plt.figure(figsize=(12, 8), dpi=100)
             CS = plt.tricontourf(x,y,zs, 100)
             if fitflag == "-plotbrute":
                 cbar = plt.colorbar(CS)
@@ -91,7 +91,7 @@ def PlotBrute(args, outPath):
                 plt.xlabel(r'$%s$' % p1, fontsize=24)
                 plt.ylabel(r'$%s$' % p2, fontsize=24)
 
-            plt.xticks(np.linspace(round(x.min(), -3), round(x.max(), -3), 5))
+            # plt.xticks(np.linspace(round(x.min(), -3), round(x.max(), -3), 5))
             plt.xlim(x.min(), x.max())
             # Set log scales as needed if scale is greater than 2 orders of magnitude
             if om1 > 2:

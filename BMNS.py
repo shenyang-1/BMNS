@@ -482,7 +482,11 @@ def Main():
                         # Calculate fit error
                         if mcerr == False:
                             #   Here: Standard error of the fit is used
-                            fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun, fitted.jac, gl.dof)
+                            if ob.R1pD[:,3].sum() != 0.:
+                                fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun,
+                                                          fitted.jac, gl.dof)
+                            else:
+                                fiterr = zeros(fitted.x.shape)
                         # Handle MC error write out and plotting
                         else:
                             #   Here: Monte-Carlo parameter error estimation

@@ -292,13 +292,13 @@ class GraphFit:
                 # Plot R1rho residual scatter
             ax[1,0].plot(i[:,0]/1e3, i[:,8], 'o', c=plot1[0].get_color(), markersize=resisize)
             ax[1,0].title.set_visible(False)
-            ax[1,0].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+            ax[1,0].set_xlabel(r'$\Omega \,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
             ax[1,0].set_ylabel(r'$R_{1\rho}\,\mathrm{ Residual}$', size=ylblfs)
             ## Bottom-Right : Residual R2eff
                 # Plot R2eff residual scatter
             ax[1,1].plot(i[:,0]/1e3, i[:,9], 'o', c=plot2[0].get_color(), markersize=resisize)
             ax[1,1].title.set_visible(False)
-            ax[1,1].set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+            ax[1,1].set_xlabel(r'$\Omega \,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
             ax[1,1].set_ylabel(r'$R_2+R_{ex}\,\mathrm{ Residual}$', size=ylblfs)
         fig.set_tight_layout(True)
         # Write out figure
@@ -331,7 +331,7 @@ class GraphFit:
             # Y-ax2es for R2eff plot
             if ob.ymin is not None and ob.ymax is not None:
                 ax.set_ylim(ob.ymin, ob.ymax)
-            ax.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+            ax.set_xlabel(r'$\Omega \,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
             ax.set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=ylblfs)
 
             # -- Set legends -- #
@@ -387,7 +387,7 @@ class GraphFit:
             # Y-ax2es for R2eff plot
             if ob.ymin is not None and ob.ymax is not None:
                 ax.set_ylim(ob.ymin, ob.ymax)
-            ax.set_xlabel(r'$\Omega\,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
+            ax.set_xlabel(r'$\Omega \,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
             ax.set_ylabel(r'$R_{1\rho}\,(s^{-1})$', size=ylblfs)
 
             # -- Set legends -- #

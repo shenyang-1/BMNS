@@ -21,6 +21,7 @@ from numpy import outer
 from numpy import savetxt, sqrt, square
 from numpy import sum as sumM
 from numpy import unique
+from numpy import zeros
 from numpy.linalg import inv
 # Scipy Scientific constants
 from scipy.constants import k as kB # Boltzmann constant
@@ -150,7 +151,10 @@ def WriteStats(outPath, mPath, fit, ob, dof, N, K, chisq, redchisq, fitnum, flag
     aic = cAIC(rss, K, N)
     bic = cBIC(rss, K, N)
     rsq, adjrsq = cRvals(rss, tss, dof, N)
-    serr, cov, corr, sdr = cStdErr(fit.x, fit.fun, fit.jac, dof)
+    if ob.R1pD[:,3].sum() != 0.:
+        serr, cov, corr, sdr = cStdErr(fit.x, fit.fun, fit.jac, dof)
+    else:
+        serr = cov = corr = sdr = zeros((3,3))
     # Generate stats dictionary of numerical fit values
     statsN = ["N", "DF", "K", "ChiSq", "RedChiSq", "Rsq", "AdjRsq",
               "AIC", "BIC", "RSS", "TSS", "SDR"]
