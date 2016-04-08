@@ -253,7 +253,6 @@ def Main():
             def residual(Params, R1p_MC=None):#, nullData):
                 # Expected R1rho based on simulations
                 resid = []
-
                 # Loop over all Fit objects in Global class object
                 for ob in gl.gObs:
                     # Unpack data
@@ -645,13 +644,16 @@ def Main():
             tst = mydate.strftime("Simulation_%m%d%y-%H%Mh%Ss")
             outPath = os.path.join(curDir, tst)
             makeFolder(outPath)
+        # Make copies of input parameter file
+        outCopy = os.path.join(outPath, "Copies")
+        makeFolder(outCopy)
         # Create folder for all magnetization vectors
         outVec = os.path.join(outPath, "MagVecs")
         makeFolder(outVec)
         # Create simulation class object
         sfo = simf.SimFit()
         # Clean and handle input args
-        sfo.PreSim(sys.argv)
+        sfo.PreSim(sys.argv, outCopy)
         # Simulate R1rho values
         sfo.simFit()
         # Plot R1rho values
@@ -930,7 +932,6 @@ off 400 -1000 1000 200
 #off 1600 -1000 1000 200
 #off 3200 -1000 1000 200
 
-
 ##################################################################################
 # "Decay" block defines how each R1rho value is simulated by simulating decaying
 #   magnetization as a function of time given parameters describing the chemical
@@ -988,6 +989,10 @@ MCNum 500
 #   Col2: Type of symbol, see: http://matplotlib.org/api/markers_api.html
 #     Too many to list, but default is a filled circle: o
 #   Col3: Size of symbol (pixels)
+# - 'Overlay' defines how you plot data overlaid on simulation
+# - 'OType' type of data to overlay, real or overlay.
+# - 'OLine' line type for overlay
+# - 'OSymbol' symbol type for overlay
 # - 'Size' defines the plot width and height in inches
 # - '(R1p/R2eff/On)_x/y' define the lower and upper limits of the respective axes
 #   Comment out to let them be automatically defined.
@@ -1002,6 +1007,10 @@ MCNum 500
 Plot line
 Line - 2
 Symbol o 13
+Overlay line
+OType sim
+OLine -- 2
+OSymbol . 13
 Size 10 8
 #R1p_x None 1000
 #R1p_y 0 100
@@ -1011,7 +1020,7 @@ On_x 0 None
 #On_y 0 50
 Axis_FS 32 32
 Label_FS 32 32
-
+Labels on
 '''
         outPath = os.path.join(curDir, sys.argv[2])
         makeFolder(outPath)

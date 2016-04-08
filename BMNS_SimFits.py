@@ -10,7 +10,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_pdf import PdfPages
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
-
+import subprocess
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
 #########################################################################
@@ -85,6 +85,10 @@ class SimFit:
           "plot" : "symbol", # Plot type - symbol or lines or both
           "line" : ["-", 1.5], # Line type
           "symbol" : ["o", 13], # Symbol type
+          "overlay" : "symbol", # Data overlay with simulation type
+          "otype" : "sim", # Data type to overlay: real or sim
+          "oline" : ["-", 1.5], # Line type
+          "osymbol" : ["o", 13], # Symbol type          
           "r1p_x" : [None, None], # Lower, upper limits of x-dimension R1p
           "r1p_y" : [None, None], # Lower, upper limits of y-dimension R1p
           "r2eff_x" : [None, None], # Lower, upper limits of x-dimension R2eff
@@ -182,13 +186,27 @@ class SimFit:
     #          parameters and maps them to class values
     #  Input:
     #   - argv with input path
+    #   - path to copy output folder
     #  Output:
     #   -
     #########################################################################
-    def PreSim(self, argv):
+    def PreSim(self, argv, outp):
         # Get path to input file
         inpPath = os.path.join(self.curDir, argv[2])
         self.prRawInp(inpPath)
+        self.copy_inp(inpPath, outp)
+
+    #########################################################################
+    # copy_inp - Copies input data file to specified output folder
+    #  Input:
+    #   - Path to input file
+    #   - Output path
+    #  Result:
+    #   - Copies input file to output path
+    #########################################################################
+    def copy_inp(self, inp, outp):
+        outp = os.path.join(outp, os.path.basename(inp))
+        subprocess.call(["cp", inp, outp])
 
     #########################################################################
     # prRawInp - Parse Raw input file
@@ -360,7 +378,8 @@ class SimFit:
                 # var name
                 v = i[0].lower()
                 # Check for numerical values if not line type or symbol
-                if v != "line" and v != "symbol":
+                if (v != "line" and v != "symbol" 
+                    and v != "oline" and v != "osymbol"):
                     if i[1].lower() != "none":
                         try:
                             tv = float(i[1])
@@ -383,6 +402,15 @@ class SimFit:
             # Assign plotting type
             elif i[0].lower() == "plot" and len(i) == 2:
                 self.pltvar[i[0].lower()] = i[1]
+            # Overlay plotting type
+            elif i[0].lower() == "overlay" and len(i) == 2:
+                self.pltvar[i[0].lower()] = i[1]
+            # Overlay data type
+            elif i[0].lower() == "otype" and len(i) == 2:
+                if i[1].lower() == "real" or i[1].lower() == "sim": 
+                    self.pltvar[i[0].lower()] = i[1]
+                else:
+                    self.pltvar[i[0].lower()] = "real"
             # labels on or off
             elif i[0].lower() == "labels" and len(i) == 2:
                 if i[1].lower() == "off":
@@ -668,19 +696,64 @@ class SimFit:
             # -- Start plotting real data, if it exists -- #
             if len(reald) != 0:
                 for n in reald:
-                    # Set offsets in kHz increments
-                    xd = n[:,0]/1e3
-                    # Set ydata
-                    yd = n[:,2] # R1rho
-                    # Set yerr
-                    ye = n[:,3] # R1rho_err
+                    # Simulated data from sim-r1p file
+                    if (self.pltvar['otype'] == "sim"
+                        and reald.shape[-1] == 7):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,2] # R1rho
+                        # Set yerr
+                        ye = n[:,3] # R1rho_err
+                    # Simulated data from fit file
+                    elif (self.pltvar['otype'] == "sim"
+                          and reald.shape[-1] == 10):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,6] # R1rho
+                        # Set yerr - none for fit sim
+                        ye = np.zeros(yd.shape)
+                    # Real data from fit file
+                    elif (self.pltvar['otype'] == "real"
+                          and reald.shape[-1] == 10):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,2] # R1rho
+                        # Set yerr 
+                        ye = n[:,3] # R1rho_err
+                    else:
+                        print "Data type specified to overlay does not exist."
+                        print "Falling back to existing data."
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,2] # R1rho
+                        # Set yerr
+                        ye = n[:,3] # R1rho_err
                     # Define current SLP, as int
                     slp = n[0][1]
                     # Define plot lbl
                     lbl = int(slp)
-                    plot = ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
-                             markersize=self.pltvar['symbol'][1], label=lbl,
-                             c=cdict[int(slp)])
+                    # Overlay given data as specified type
+                    if self.pltvar['overlay'] == "line":
+                        ax.plot(xd, yd, self.pltvar['oline'][0],
+                                linewidth=self.pltvar['oline'][1],
+                                label=lbl, c=cdict[int(slp)])
+                    elif self.pltvar['overlay'] == "symbol":
+                        ax.errorbar(xd, yd, yerr=ye,
+                                    fmt=self.pltvar['osymbol'][0],
+                                    markersize=self.pltvar['osymbol'][1],
+                                    label=lbl, c=cdict[int(slp)])
+                    else:
+                        ax.plot(xd, yd, self.pltvar['oline'][0],
+                                linewidth=self.pltvar['oline'][1],
+                                label=lbl, c=cdict[int(slp)])
+                        ax.errorbar(xd, yd, yerr=ye,
+                                    fmt=self.pltvar['osymbol'][0],
+                                    markersize=self.pltvar['osymbol'][1],
+                                    label=lbl, c=cdict[int(slp)])
 
             ##### Start decorating plot #####
 
@@ -838,22 +911,67 @@ class SimFit:
             # -- Start plotting real data, if it exists -- #
             if len(reald) != 0:
                 for n in reald:
-                    # Set offsets in kHz increments
-                    xd = n[:,0]/1e3
-                    # Set ydata
-                    yd = n[:,4] # R2eff
-                    # Set yerr
-                    ye = n[:,5] # R1rho_err
+                    # Simulated data from sim-r1p file
+                    if (self.pltvar['otype'] == "sim"
+                        and reald.shape[-1] == 7):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,4] # R2eff
+                        # Set yerr
+                        ye = n[:,5] # R2eff_err
+                    # Simulated data from fit file
+                    elif (self.pltvar['otype'] == "sim"
+                          and reald.shape[-1] == 10):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,7] # R2eff
+                        # Set yerr - none for fit sim
+                        ye = np.zeros(yd.shape)
+                    # Real data from fit file
+                    elif (self.pltvar['otype'] == "real"
+                          and reald.shape[-1] == 10):
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,4] # R2eff
+                        # Set yerr 
+                        ye = n[:,5] # R2eff_err
+                    else:
+                        print "Data type specified to overlay does not exist."
+                        print "Falling back to existing data."
+                        # Set offsets in kHz increments
+                        xd = n[:,0]/1e3
+                        # Set ydata
+                        yd = n[:,4] # R2eff
+                        # Set yerr
+                        ye = n[:,5] # R2eff_err
+
                     # Define current SLP, as int
                     slp = n[0][1]
                     # Define plot lbl
                     lbl = int(slp)
-                    ax.errorbar(xd, yd, yerr=ye, fmt=self.pltvar['symbol'][0],
-                             markersize=self.pltvar['symbol'][1], label=lbl,
-                             c=cdict[int(slp)])
+                    # Overlay given data as specified type
+                    if self.pltvar['overlay'] == "line":
+                        ax.plot(xd, yd, self.pltvar['oline'][0],
+                                linewidth=self.pltvar['oline'][1],
+                                label=lbl, c=cdict[int(slp)])
+                    elif self.pltvar['overlay'] == "symbol":
+                        ax.errorbar(xd, yd, yerr=ye,
+                                    fmt=self.pltvar['osymbol'][0],
+                                    markersize=self.pltvar['osymbol'][1],
+                                    label=lbl, c=cdict[int(slp)])
+                    else:
+                        ax.plot(xd, yd, self.pltvar['oline'][0],
+                                linewidth=self.pltvar['oline'][1],
+                                label=lbl, c=cdict[int(slp)])
+                        ax.errorbar(xd, yd, yerr=ye,
+                                    fmt=self.pltvar['osymbol'][0],
+                                    markersize=self.pltvar['osymbol'][1],
+                                    label=lbl, c=cdict[int(slp)])
 
             ##### Start decorating plot #####
-
             # -- Set legends -- #
             # Get rid of legend error bars
             handles, labels = ax.get_legend_handles_labels()
