@@ -258,6 +258,7 @@ def Main():
                     # Unpack data
                     Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
                     R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
+
                     # Take in error corrupted R1p values
                     if R1p_MC is not None:
                         R1p = ob.R1p_MC
@@ -1128,9 +1129,9 @@ pB 0.01 1e-6 0.5
 pC! 0.0 1e-6 0.5
 dwB 3.0 -80 80
 dwC! 0.0 -80 80
-kexAB 3000. 1. 50000.
-kexAC! 0.0 1. 50000.
-kexBC! 0.0 1. 50000.
+kexAB 3000. 1. 500000.
+kexAC! 0.0 1. 500000.
+kexBC! 0.0 1. 500000.
 R1 2.5 1e-6 20.
 R2 16.0 1e-6 200.
 R1b! 0.0
