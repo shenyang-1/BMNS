@@ -56,6 +56,7 @@ def PlotBrute(args, outPath):
             dRCS = np.array([zv - z.min() for zv in z])
             # Scale Z values as if they were nIC weights
             zs = np.array([sf.cnICwt(drs, dRCS) for drs in dRCS])
+            zs = np.array([(zi-zs.min())/(zs.max() - zs.min()) for zi in zs])
 
             # -- Plot Red. Chi-Square Contours -- #
             fig = plt.figure(figsize=(12, 8), dpi=100)
