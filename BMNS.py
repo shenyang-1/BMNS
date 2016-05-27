@@ -11,7 +11,7 @@
 import os, sys
 import subprocess
 import datetime
-
+import pandas as pd
 ### Local BMNS Libraries ###
 import BMNS_FitData as fd
 import BMNS_SimR1p as sim
@@ -1032,15 +1032,51 @@ Labels on
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generate Example Parameters Text file
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #  arg1 '-genpar'
+    #  arg1 '-genpar' or '-genparsim' to read in simpars
     #  arg2 output directory
     #  arg3 optional name to put in example par
     #---------------------------------------------------
-    elif sys.argv[1].lower() == "-genpar":
+    elif "-genpar" in sys.argv[1].lower():
+        # Set default initial guesses
+        pars = {'lf': 150.784267,
+                'te': 25.0,
+                'alignmag': 'auto',
+                'pb': 0.01,
+                'pc': 0.0,
+                'dwb': 3.0,
+                'dwc': 0.0,
+                'kexab': 3000.0,
+                'kexac': 0.0,
+                'kexbc': 0.0,
+                'r1': 2.5,
+                'r1b': 0.0,
+                'r1c': 0.0,
+                'r2': 16.0,
+                'r2b': 0.0,
+                'r2c': 0.0}
+
         if argc == 4:
             name = sys.argv[3]
         else:
             name = "FileName"
+        # Read in simulated parameters as initial guess for fitting
+        if sys.argv[1].lower() == "-genparsim":
+            if argc == 4:
+                name = "FileName"
+                sim_p = os.path.join(curDir, sys.argv[3])
+            elif argc == 5:
+                name = sys.argv[3]
+                sim_p = os.path.join(curDir, sys.argv[4])
+            if os.path.isfile(sim_p):
+                rd = pd.read_csv(sim_p, delimiter=",")
+                pars = {x: rd[x][0] for x in pars}
+                if pars['r1'] == pars['r1b'] == pars['r1c']:
+                    pars['r1b'] = 0.0
+                    pars['r1c'] = 0.0
+                if pars['r2'] == pars['r2b'] == pars['r2c']:
+                    pars['r2b'] = 0.0
+                    pars['r2c'] = 0.0                
+        
         outstr = '''
 ##################################################################################
 # Run the BMNS fitting program:
@@ -1119,26 +1155,29 @@ RandomFitStart No
 
 +
 Name %s
-lf 150.784627
-Temp 25
-AlignMag Auto
+lf %s
+Temp %s
+AlignMag %s
 #Trelax 0.0005 0.5
 #x-axis -2000 2000
 #y-axis 0 50
-pB 0.01 1e-6 0.5
-pC! 0.0 1e-6 0.5
-dwB 3.0 -80 80
-dwC! 0.0 -80 80
-kexAB 3000. 1. 500000.
-kexAC! 0.0 1. 500000.
-kexBC! 0.0 1. 500000.
-R1 2.5 1e-6 20.
-R2 16.0 1e-6 200.
-R1b! 0.0
-R2b! 0.0
-R1c! 0.0
-R2c! 0.0
-''' % name
+pB %s 1e-6 0.5
+pC! %s 1e-6 0.5
+dwB %s -80 80
+dwC! %s -80 80
+kexAB %s 1.0 500000.0
+kexAC! %s 1.0 500000.0
+kexBC! %s 1.0 500000.0
+R1 %s 1e-6 20.
+R2 %s 1e-6 200.
+R1b! %s
+R2b! %s
+R1c! %s
+R2c! %s
+''' % (name, pars['lf'], pars['te'], pars['alignmag'], pars['pb'],
+       pars['pc'], pars['dwb'], pars['dwc'], pars['kexab'],
+       pars['kexac'], pars['kexbc'], pars['r1'], pars['r2'],
+       pars['r1b'], pars['r2b'], pars['r1c'], pars['r2c'])
 
         outPath = os.path.join(curDir, sys.argv[2])
         makeFolder(outPath)
