@@ -150,7 +150,11 @@ MCNum 500
 +
 Plot line
 Line - 2
-Symbol o 13
+Symbol v 13
+Overlay symbol
+OType real
+OLine -- 2
+OSymbol . 13
 Size 10 8
 #R1p_x None 1000
 #R1p_y 0 100
@@ -160,4 +164,5 @@ On_x 0 None
 #On_y 0 50
 Axis_FS 32 32
 Label_FS 32 32
+Labels off
 

@@ -21,22 +21,22 @@
 ##################################################################################
 +
 Params
-#Read BMfit.csv
+#Read pars.csv
 lf 150.784627
 AlignMag Auto
-pB 0.05
+pB 0.01
 pC 0.0
 dwB 3.0
 dwC 0.0
-kexAB 1000.0
+kexAB 3000.0
 kexAC 0.0
 kexBC 0.0
-R1 2.0
-R2 20.0
-R1b 2.0
-R2b 20.0
-R1c 2.0
-R2c 20.0
+R1 2.5
+R2 16.0
+R1b 2.5
+R2b 16.0
+R1c 2.5
+R2c 16.0
 
 ##################################################################################
 # "SLOFF" block defines spinlock powers and offsets to simulate with BM.
@@ -85,17 +85,16 @@ R2c 20.0
 +
 SLOFF
 #Read sloffs.csv
-#Data RealData.csv
+#Data data.csv
 Error 0.0
 MCNum 500
-on 100 3500 50
-off 100 -1000 1000 200
-off 200 -1000 1000 200
-off 400 -1000 1000 200
+#on 100 3500 50
+#off 100 -1000 1000 200
+off 200 -1000 1000 40
+#off 400 -1000 1000 200
 #off 800 -1000 1000 200
 #off 1600 -1000 1000 200
 #off 3200 -1000 1000 200
-
 
 ##################################################################################
 # "Decay" block defines how each R1rho value is simulated by simulating decaying
@@ -134,8 +133,8 @@ off 400 -1000 1000 200
 Decay
 vdlist 0.0 0.25 51
 #Read delays
-PlotDec no
-Error 0.0
+PlotDec yes
+Error 0.01
 MCNum 500
 
 ##################################################################################
@@ -154,7 +153,11 @@ MCNum 500
 #   Col2: Type of symbol, see: http://matplotlib.org/api/markers_api.html
 #     Too many to list, but default is a filled circle: o
 #   Col3: Size of symbol (pixels)
-# - 'Size' defines the plot width and heigh in inches
+# - 'Overlay' defines how you plot data overlaid on simulation
+# - 'OType' type of data to overlay, real or overlay.
+# - 'OLine' line type for overlay
+# - 'OSymbol' symbol type for overlay
+# - 'Size' defines the plot width and height in inches
 # - '(R1p/R2eff/On)_x/y' define the lower and upper limits of the respective axes
 #   Comment out to let them be automatically defined.
 #   Alternatively, set one or both values to 'None' to let the program
@@ -165,9 +168,13 @@ MCNum 500
 # - 'LabelFS' sets the X and Y axes labels font sizes
 ##################################################################################
 +
-Plot line
+Plot symbol
 Line - 2
-Symbol o 13
+Symbol v 13
+Overlay line
+OType sim
+OLine -- 2
+OSymbol . 13
 Size 10 8
 #R1p_x None 1000
 #R1p_y 0 100
@@ -177,4 +184,4 @@ On_x 0 None
 #On_y 0 50
 Axis_FS 32 32
 Label_FS 32 32
-
+Labels off

@@ -11,6 +11,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 import subprocess
+
 #########################################################################
 # BMNS_SimFits : Simulates R1rho fit curves given parameters
 #########################################################################
@@ -1032,6 +1033,7 @@ class SimFit:
             else:                    
                 plt.tight_layout()
             figp = os.path.join(figp, "sim-R2eff.pdf")
+            # figp = os.path.join(figp, "sim-R2eff.png")
             plt.savefig(figp, transparent=True)
             plt.close(fig)
             plt.clf()
