@@ -582,11 +582,12 @@ class SimFit:
                 # -- Define figure -- #
                 fig = plt.figure()
                 plt.errorbar(d[:,14], d[:,0], yerr=d[:,1], fmt='o')
-                # Simulate x-values for plotting trendline
-                if 101 < len(d[:,14]):
-                    simX = np.linspace(d[:,14].min(), d[:,14].max(), 51)
-                else:
-                    simX = d[:,14]
+                # # Simulate x-values for plotting trendline
+                # if 101 < len(d[:,14]):
+                #     simX = np.linspace(d[:,14].min(), d[:,14].max(), 51)
+                # else:
+                #     simX = d[:,14]
+                simX = np.linspace(d[:,14].min(), d[:,14].max(), 500)
                 # Plot simulated trend-line
                 plt.plot(simX, sim.ExpDecay(simX, A, R1p), c='red')
                 # Define plot limits

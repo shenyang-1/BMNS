@@ -75,7 +75,7 @@ RandomFitStart No
 Name dG6C1p-mc.csv
 lf 150.784627
 Temp 25
-AlignMag Auto
+AlignMag auto
 #Trelax 0.0005 0.5
 #x-axis -2000 2000
 #y-axis 0 50

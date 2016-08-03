@@ -125,16 +125,10 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
         if exchReg <= 1.:
             ## Align magnetization along GS ##
             #Calculate Resonant Frequencies of GS, ES1, ES2 (in rad/sec)
-            uOmega1 = -(pB*dwB + pC*dwC) / (pA + pB + pC) # (rad/sec)
-            uOmega2 = uOmega1 + dwB # (rad/sec)
-            uOmega3 = uOmega1 + dwC # (rad/sec)
-            uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 # Resonance Offset (rad/sec) wrt GS
-                                                                # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
-            # Offsets wrt GS
-            uOmega2 = uOmega2 - uOmega1                                                
-            uOmega3 = uOmega3 - uOmega1  
-            uOmegaAvg = uOmegaAvg - uOmega1
-            uOmega1 = uOmega1 - uOmega1
+            uOmega1 = 0.0
+            uOmega2 = dwB
+            uOmega3 = dwC
+            uOmegaAvg = uOmega1
 
             # Calculate resonance offset from the carrier (wrf, ie. spinlock offset)
             # delta(uOmega) = uOmega-bar - lOmega_rf (rad/s)
@@ -242,17 +236,10 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
     elif AlignMag == "gs":
         ## Align magnetization along GS ##
         #Calculate Resonant Frequencies of GS, ES1, ES2 (in rad/sec)
-        uOmega1 = -(pB*dwB + pC*dwC) / (pA + pB + pC) # (rad/sec)
-        uOmega2 = uOmega1 + dwB # (rad/sec)
-        uOmega3 = uOmega1 + dwC # (rad/sec)
-        uOmegaAvg = pA*uOmega1 + pB*uOmega2 + pC*uOmega3 # Resonance Offset (rad/sec) wrt GS
-                                                            # Given as uOmega-bar = sum(i=1, N)[ p_i + uOmega_i]
-
-        # Offsets wrt GS
-        uOmega2 = uOmega2 - uOmega1                                                
-        uOmega3 = uOmega3 - uOmega1  
-        uOmegaAvg = uOmegaAvg - uOmega1
-        uOmega1 = uOmega1 - uOmega1
+        uOmega1 = 0.0
+        uOmega2 = dwB
+        uOmega3 = dwC
+        uOmegaAvg = uOmega1
 
         # Calculate resonance offset from the carrier (wrf, ie. spinlock offset)
         # delta(uOmega) = uOmega-bar - lOmega_rf (rad/s)
@@ -877,6 +864,9 @@ def matrix_exponential(A, w1, wrf, t, EigVal=False):
 #########################################################################
 def ExpDecay(x,a,b):
     return a*exp(-b*x)
+
+def BiExpDecay(x, A, r1p_a, B, r1p_b):
+    return (A * exp(-r1p_a * x)) + (B * exp(-r1p_b * x))
 
 #########################################################################
 # Evolve magnetization of Ms starting from M0 with increment of time
