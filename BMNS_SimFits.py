@@ -171,13 +171,29 @@ class SimFit:
     # plotR1p - Writes out magnetization vectors and eigenvalues
     #########################################################################
     def writeVecVal(self, outvec, outev):
-        hdr = "Peff,Peff_err,PeffA,PeffB,PeffC,Mxa,Mya,Mza,Mxb,Myb,Mzb,Mxc,Myc,Mzc,time"
-        # Write out magnetization vectors
-        for n,i in zip(self.R1pV, self.magVecs):
+        hdr = "Dly,nInt,nInt_err,PeffA,PeffB,PeffC,Mxa,Mya,Mza,Mxb,Myb,Mzb,Mxc,Myc,Mzc"
+        # Write out indv magnetization vectors
+        mdf = pd.DataFrame()
+        for idx,(n,i) in enumerate(zip(self.R1pV, self.magVecs)):
             of, sl = n[0], n[1]
+            # Push delay to first column
+            t_i = np.roll(i, 1, axis=1)
+            # Create array of index/offsets/slps
+            sloff_mx = np.array([[idx, of, sl] for _ in range(i.shape[0])])
+            # Stack offset/slp matrix with intensity matrix
+            combo_mx = np.hstack((sloff_mx, t_i))
+            # print combo_mx[:,:4]
+            # print "-------------"
+            combo_hd = ["Index", "Offset", "SLP", "Dly", "nInt", "nInt_err",
+                        "PeffA", "PeffB", "PeffC", "Mxa", "Mya", "Mza",
+                        "Mxb", "Myb", "Mzb", "Mxc", "Myc", "Mzc"]
+            mdf = mdf.append(pd.DataFrame(combo_mx, columns=combo_hd))
             magp = os.path.join(outvec, "%s_%s.csv" % (of, sl))
-            np.savetxt(magp, i, delimiter=',', header=hdr, comments='')
-
+            np.savetxt(magp, t_i, delimiter=',', header=hdr, comments='')
+        mdf.to_csv(os.path.join(outev, "sim-IntDelayNoise.csv"),
+                   sep=",", index=False)
+        # print self.R1pV[0]
+        # print self.magVecs.shape
         eigvp = os.path.join(outev, "sim-eigenvalues.csv")
         hdr = "offset,slp,w1,w2,w3,w4,w5,w6,w7,w8,w9"
         np.savetxt(eigvp, self.eigVals, delimiter=',', header=hdr, comments='')

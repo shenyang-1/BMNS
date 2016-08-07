@@ -28,6 +28,7 @@ from numpy import float64
 from numpy import isinf, isnan
 from numpy import linspace
 from numpy import nan_to_num
+from numpy import reshape
 from numpy import sqrt
 from numpy import zeros
 ### Numpy sub imports ###
@@ -142,6 +143,9 @@ def Main():
         for idx,inp in enumerate(pInp.ParInp):
             gl.gObs.append(fd.Fits(idx))
 
+        ## Grab fit types
+        gl.GrabFitType(pInp.FitType)
+
         ## Loop over fit objects in global class object
         #  Read in and convert parameter and data files
         for i in gl.gObs:
@@ -150,8 +154,14 @@ def Main():
             i.ConvertPars(pInp.ParInp[i.FitNum])
             # Parse and check raw R1rho data given the name in self.Pars
             #  of the corresponding Fit object
-            errBool, tMsg = pInp.ParseData(dataPath, i.name)
-            retMsg += tMsg
+            #   Check to see if fit type specifies fitting for intensities with
+            #   the 'int' keyword
+            if "int" in gl.FitType:
+                errBool, tMsg = pInp.ParseData(dataPath, i.name, "Ints")
+                retMsg += tMsg
+            else:
+                errBool, tMsg = pInp.ParseData(dataPath, i.name, "R1p")
+                retMsg += tMsg
             # Copy original data
             subprocess.call(["cp", os.path.join(dataPath, i.name + ".csv"),
                              os.path.join(copyPath, "copy-" + i.name + ".csv")])
@@ -162,9 +172,6 @@ def Main():
             # Randomly remove data if flagged
             if i.deldata != 0.0:
                 i.rnd_rem_data(i.deldata)
-
-        ## Grab fit types
-        gl.GrabFitType(pInp.FitType)
 
         ## Generate global P0, bounds, shared and fix value arrays, dicts and sets
         gl.MapGlobalP0()
@@ -211,28 +218,47 @@ def Main():
             #   with error: chi-sq = ((R1p_sim - R1p)/(R1p_err))^2
             #   without error: chi-sq = (R1p_sim - R1p)^2 / R1p
             #---------------------------#---------------------------#
-            def chi2(Params):
+            def chi2(Params, DataType="R1p"):
                 # Expected R1rho based on simulations
                 chisq = 0.
 
                 # Loop over all Fit objects in Global class object
                 for ob in gl.gObs:
-                    # Unpack data
-                    Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
-                    R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
-                    # Unpack parameters
-                    lf = ob.lf
-                    # Parse 'Params' down to only the local values
-                    #  and handle shared and fix parameters.
-                    tPars = gl.UnpackgP0(Params, ob)
-                    # If error in value, chisq = (o-e/err)^2
-                    if len(R1p_e) > 1:
-                        chisq += sum([((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)**2.
-                                       for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)])
-                    # If no error in value, chisq = (o-e)^2/e
-                    else:
-                        chisq += sum([((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)**2./kR1p)
-                                      for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]) 
+                    if DataType == "R1p":
+                        # Unpack data
+                        Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
+                        R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
+                        # Unpack parameters
+                        lf = ob.lf
+                        # Parse 'Params' down to only the local values
+                        #  and handle shared and fix parameters.
+                        tPars = gl.UnpackgP0(Params, ob)
+                        # If error in value, chisq = (o-e/err)^2
+                        if len(R1p_e) > 1:
+                            chisq += sum([((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)**2.
+                                           for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)])
+                        # If no error in value, chisq = (o-e)^2/e
+                        else:
+                            chisq += sum([((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)**2./kR1p)
+                                          for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]) 
+
+                    # --- Get Intensity Residials --- #
+                    elif DataType == "Ints":
+                        # Unpack parameters
+                        lf = ob.lf
+                        # Parse 'Params' down to only the local values
+                        #  and handle shared and fix parameters.
+                        tPars = gl.UnpackgP0(Params, ob)
+                        # Loop over index values in data
+                        for d in ob.R1pD:
+                            # Unpack data
+                            Offs, SLPs = d[:,1], d[:,2]
+                            Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
+                            # Simulated decay vector
+                            pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
+                                                    lf, Ints, Dlys, ob.AlignMag)
+                            # Calculate residual of this vector and the intensities
+                            chisq += ((pv - Ints)**2. / Ints_e).sum()
 
                 ### Check for 'NaN' or 'inf' chi-square ###
                 #  These are sometimes genereated when magnetization
@@ -247,50 +273,76 @@ def Main():
 
             #---------------------------#---------------------------#
             # Residual function used for fitting algorithms
+            # R1p_MC (True/False) defines MC error  number
+            # DataType specifies R1p or intensities to fit
             #  Returns matrix of residuals of: (f(x) - known) / error
             #                              or:  f(x) - known
             #---------------------------#---------------------------#
-            def residual(Params, R1p_MC=None):#, nullData):
+            def residual(Params, R1p_MC=None, DataType="R1p"):
+                print Params
                 # Expected R1rho based on simulations
                 resid = []
                 # Loop over all Fit objects in Global class object
                 for ob in gl.gObs:
-                    # Unpack data
-                    Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
-                    R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
+                    # --- Get R1Rho Residials --- #
+                    if DataType == "R1p":
+                        # Unpack data
+                        Offs, Spinlock = ob.R1pD[:,0], ob.R1pD[:,1]
+                        R1p, R1p_e = ob.R1pD[:,2], ob.R1pD[:,3]
 
-                    # Take in error corrupted R1p values
-                    if R1p_MC is not None:
-                        R1p = ob.R1p_MC
-                    # Unpack parameters
-                    lf = ob.lf
-                    # Parse 'Params' down to only the local values
-                    #  and handle shared and fix parameters.
-                    tPars = gl.UnpackgP0(Params, ob)
-                    # Calculate residuals using BM numerical solution
-                    #  if equation is specified in ob.fitEqn
-                    if gl.gFitEqn == "bm":
-                        # If error in value, residual matrix = (f(x) - obs) / err
-                        if len(R1p_e) > 1 and R1p_MC is None:
-                            resid += [(absolute(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
-                                           for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
+                        # Take in error corrupted R1p values
+                        if R1p_MC is not None:
+                            R1p = ob.R1p_MC
+                        # Unpack parameters
+                        lf = ob.lf
+                        # Parse 'Params' down to only the local values
+                        #  and handle shared and fix parameters.
+                        tPars = gl.UnpackgP0(Params, ob)
+                        # Calculate residuals using BM numerical solution
+                        #  if equation is specified in ob.fitEqn
+                        if gl.gFitEqn == "bm":
+                            # If error in value, residual matrix = (f(x) - obs) / err
+                            if len(R1p_e) > 1 and R1p_MC is None:
+                                resid += [(absolute(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
+                                               for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
 
-                        # If no error in value, residual matrix = f(x) - obs
-                        else:
-                            resid += [(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
-                                           for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]
-                    # Calculate residuals using Laguerre approximations
-                    elif gl.gFitEqn == "lag":
-                        # If error in value, residual matrix = (f(x) - obs) / err
-                        if len(R1p_e) > 1 and R1p_MC is None:
-                            resid += [((sim.LagFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
-                                           for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
+                            # If no error in value, residual matrix = f(x) - obs
+                            else:
+                                resid += [(sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
+                                               for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]
+                        # Calculate residuals using Laguerre approximations
+                        elif gl.gFitEqn == "lag":
+                            # If error in value, residual matrix = (f(x) - obs) / err
+                            if len(R1p_e) > 1 and R1p_MC is None:
+                                resid += [((sim.LagFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)/err)
+                                               for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]
 
-                        # If no error in value, residual matrix = f(x) - obs
-                        else:
-                            resid += [(sim.LagFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
-                                          for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]            
+                            # If no error in value, residual matrix = f(x) - obs
+                            else:
+                                resid += [(sim.LagFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
+                                              for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]            
+                    # --- Get Intensity Residials --- #
+                    elif DataType == "Ints":
+                        # Unpack parameters
+                        lf = ob.lf
+                        # Parse 'Params' down to only the local values
+                        #  and handle shared and fix parameters.
+                        tPars = gl.UnpackgP0(Params, ob)
+                        # Loop over index values in data
+                        for d in ob.R1pD:
+                            # Unpack data
+                            Offs, SLPs = d[:,1], d[:,2]
+                            Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
+                            # Simulated decay vector
+                            pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
+                                                    lf, Ints, Dlys, ob.AlignMag)
+                            # Calculate residual of this vector and the intensities
+                            resid.append(absolute((pv - Ints) / Ints_e))
+
                 resid = asarray(resid)
+                if DataType == "Ints":
+                    # If fit for ints, reshape residual as flat array
+                    resid = reshape(resid, resid.shape[0] * resid.shape[1])
 
                 ### Check for 'NaN' or 'inf' chi-square ###
                 #  These are sometimes genereated when magnetization
@@ -393,63 +445,6 @@ def Main():
                     fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
                                            method='trf')
 
-                    ## Start MC error loop, if flagged
-
-                   # # ########################################################################
-                   # #  Monte-Carlo multiprocessing functions used to avoid
-                   # #   pickling error in multiprocessing.Process function
-                   # #   when function called within function
-                   # #  Used from: http://stackoverflow.com/questions/3288595/
-                   # #             multiprocessing-using-pool-map-on-a-function-defined-in-a-class
-                   # #  ########################################################################
-
-                   #  def fun(f,q_in,q_out):
-                   #    while True:
-                   #      i,x = q_in.get()
-                   #      if i is None:
-                   #          break
-                   #      q_out.put((i,f(x)))
-
-                   #  def parmap(f, X, nprocs = cpu_count()):
-                   #      m = Manager()
-                   #      q_in   = m.Queue(1)
-                   #      q_out  = m.Queue()
-
-                   #      proc = [Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
-                   #      for p in proc:
-                   #        p.daemon = True
-                   #        p.start()
-
-                   #      sent = [q_in.put((i,x)) for i,x in enumerate(X)]
-                   #      [q_in.put((None,None)) for _ in range(nprocs)]
-                   #      res = [q_out.get() for _ in range(len(sent))]
-                   #      [p.join() for p in proc]
-
-                   #      return [x for i,x in sorted(res)]
-
-                   #  # Define the Monte-Carlo random corrupt look
-                   #  def MC_loop(i):
-                   #    # Iterate over sub ojects in fit
-                   #    for ob in gl.gObs:
-                   #      # Define a random seed - prevents parallel processing
-                   #      #    from using the same seed for each batch
-                   #      seed(None)
-                   #      ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
-                   #    # Fit noise-corrupted R1p data, append fits only to list
-                   #    fits = (least_squares(residual, fitted.x, bounds = gl.gBnds,
-                   #                          max_nfev=10000, args=([True])).x)
-                   #    return fits
-                   #  ## Start MC error loop, if flagged
-                   #  # This will estimate R1p parameter errors as standard dev
-                   #  #  from MC normal error corruption and re-fit of R1p vals
-                   #  if mcerr == True:
-                   #    nprocs = cpu_count()
-                   #    print "          Monte-Carlo Parameter Error Propagation"
-                   #    print "             (%s iterations across %s cores)" % (fitMC, nprocs)
-                   #    MCpars = array(parmap(MC_loop, range(fitMC)))
-
-# ------ OLD MC error corruption below -------#
-
                     # This will estimate R1p parameter errors as standard dev
                     #  from MC normal error corruption and re-fit of R1p vals
                     if mcerr == True:
@@ -512,6 +507,49 @@ def Main():
                         # Calculate fit stats
                         sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
                                       gl.freePars, chisq, redChiSq, lp+1, "local")
+                # Fit intensity values directly using local optimization
+                elif gl.FitType == "localint":
+                    print "~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)  
+                    print "                     (Levenberg-Marquardt)  " 
+
+                    # Randomize initial guess, if flagged
+                    if gl.rndStart == True:
+                        tP0 = gl.RandomgP0()
+                    else:
+                        tP0 = gl.gP0
+                    td = gl.gObs[0].R1pD
+
+                    # Least_squares / Lev-Mar fit
+                    fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
+                                           method='trf', kwargs={'DataType': 'Ints'})
+
+                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    ### Update Fit (local) Class Objects Here ###         
+                    # 1. Unpack local fitted parameters
+                    # 2. Write out fits and reduced chi^2 (chi-sq/dof)
+                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    for ob in gl.gObs:
+                        # Reduced chi-square = chi-square / (N (data points) - M (free parameters))
+                        chisq = chi2(fitted.x, DataType="Ints")
+                        redChiSq = chisq / gl.dof
+
+                        # #   Here: Standard error of the fit is used
+                        if ob.R1pD[:,0][:,5].sum() != 0.:
+                            fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun,
+                                                      fitted.jac, gl.dof)
+                        else:
+                            fiterr = zeros(fitted.x.shape)
+
+                        # Unpack global fit param array to local values for Fit object
+                        gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
+                                      fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
+                        # Write out / append latest fit data
+                        gl.WriteFits(outPath, ob, lp+1, "local")       
+
+                        # Calculate fit stats
+                        sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
+                                      gl.freePars, chisq, redChiSq, lp+1, "local")
+
                 # Brute-force across parameter range
                 elif "brute" in gl.FitType:
                     #########################################################################

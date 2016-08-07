@@ -520,6 +520,74 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
 
 #########################################################################
 # Fitting function BM Simulation Routine (using 3-state matrix)
+# Returns array of intensities
+#   Params = vector of fitted parameters to be unpacked
+#            Parameters in vector can vary
+#   w1 = SLP (given in Hz, converted to rad/s for calcs later on)
+#   wrf = Offset from carrier
+#         (given in "corrected" Hz, converted to rad/s later for calcs)
+#   lf = Larmor freq (MHz, to calc dw from ppm)
+#   time = vector of time increments (sec) from Tmin-Tmax
+#   AlignMag = How to align magnetization / project
+#              Auto = calculates slow or fast exchange, aligns gs or avg
+#              Avg = aligns along average
+#              GS  = Aligns along ground-state
+#########################################################################
+def BMFitFunc_ints(Params, w1, wrf, lf, ints, time, AlignMag="auto"):
+    # Unpack Parameters
+    pB, pC, dwB, dwC, kexAB, kexAC, kexBC, R1, R1b, R1c, R2, R2b, R2c = Params
+    pA = 1. - (pB + pC)
+
+    ################################
+    ##### Pre-run Calculations #####
+    ################################
+    # Convert w1, wrf to rad/sec from Hz
+    w1 = w1 * 2. * pi
+    wrf = wrf * 2. * pi
+    #Convert dw from ppm to rad/s
+    dwB = dwB * lf * 2. * pi # dw(ppm) * base-freq (eg 151 MHz, but just 151) * 2PI, gives rad/s
+    dwC = dwC * lf * 2. * pi
+    #Define forward/backward exchange rates
+    k12 = kexAB * pB / (pB + pA)
+    k21 = kexAB * pA / (pB + pA)
+    k13 = kexAC * pC / (pC + pA)
+    k31 = kexAC * pA / (pC + pA)
+    if kexBC != 0.:
+        k23 = kexBC * pC / (pB + pC)
+        k32 = kexBC * pB / (pB + pC)
+    else:
+        k23 = 0.
+        k32 = 0.
+
+    # Calculate pertinent frequency offsets/etc for alignment and projection
+    lOmegaA, lOmegaB, lOmegaC, uOmega1, uOmega2, uOmega3, uOmegaAvg,\
+    delta1, delta2, delta3, deltaAvg, theta1, theta2, theta3, thetaAvg = \
+                            AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
+
+    #Calculate initial magnetization
+    Ma = pA*lOmegaA # ES1
+    Mb = pB*lOmegaB # GS
+    Mc = pC*lOmegaC # ES2
+
+    # Magnetization matrix
+    Ms = MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
+                   w1, R1, R2, R1b, R1c, R2b, R2c)
+
+    # Initial magnetization of GS (Mb), ES1 (Ma), ES2 (Mc)
+    M0 = array([Ma[0],Mb[0],Mc[0],Ma[1],Mb[1],Mc[1],Ma[2],Mb[2],Mc[2]], float64)
+
+    #################################################################
+    #### Calculate Evolution of Magnetization for Fitting Func ######
+    #################################################################
+
+    # Project magnetization along average state in Jameson way
+    #   Note: this PeffVec + Fit Exp gives nearly identical
+    #         values to Flag 2 way
+    PeffVec = asarray([AltCalcMagT(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) for x in time])
+    return PeffVec
+
+#########################################################################
+# Fitting function BM Simulation Routine (using 3-state matrix)
 #   Params = Dictionary of parameter names and associate values
 #            must have: pb, pc, kexab, kexac, kexbc, r1, r1b, r1c
 #                       r2, r2b, r2c, dwb, dwc, lf, alignmag keys

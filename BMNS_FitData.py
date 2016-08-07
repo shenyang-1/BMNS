@@ -20,6 +20,7 @@ from numpy import float64
 from numpy import interp
 from numpy import linspace, logspace, log10
 from numpy import shape
+from numpy import unique
 ### Numpy sub imports ###
 from numpy.random import choice, uniform
 from numpy.core.defchararray import rstrip
@@ -711,11 +712,25 @@ class Parse:
     #---------------------------#---------------------------#
     # Takes a path to data folder and a list of names
     #  Checks that data files exists, then parses data
-    #  to semi-raw format.
+    #  to semi-raw format. Checks data type to process R1p
+    #  or intensity values.
+    # DataType can be 'R1p' or 'Ints'
     # Performs size checks as well,
     #  returns Bool and Error string
+    # R1p Data Array has columns:
+    # o 0 Offset (Hz)
+    # o 1 SLP (Hz)
+    # o 2 R1p
+    # o 3 R1p error
+    # Ints Data Array has columns:
+    # o 0 Index number
+    # o 1 Offset (Hz)
+    # o 2 SLP (Hz)
+    # o 3 Delays (sec)
+    # o 4 Normalized intensity
+    # o 5 Normalized intensity error
     #---------------------------#---------------------------#
-    def ParseData(self, PathToData, Name=None):
+    def ParseData(self, PathToData, Name=None, DataType="R1p"):
         # File extension type, default .csv
         fileExt = ".csv"
         # Check to see if need to combine path and name
@@ -779,7 +794,21 @@ class Parse:
             # If more columns than 4, will just ignore them and only
             #  consider the first 1-4
             if len(tData.shape) == 2:
-                if tData.shape[0] >= 2 and tData.shape[1] >= 3:
+                # Parse R1p data
+                if DataType == "Ints":
+                    # Take 2D numpy array and split in to 3D array
+                    # by unique index number (col 0)
+                    # Now will have array of shape (N, M, O)
+                    #  where N is number of indexes
+                    #  M is number of delays
+                    #  O is columns of each N
+                    tData = asarray([[l for l in tData if l[0] == k]
+                                    for k in unique(tData[:,0])])
+                    self.DataInp.append(tData)
+
+                # Parse R1p data
+                elif (DataType == "R1p" and tData.shape[0] >= 2
+                    and tData.shape[1] >= 3):
                     # Now check to see if there are more than 4 columns
                     #  in data array.
                     # If there are, assume that column 0 is folder numbers
@@ -1093,15 +1122,6 @@ class Data:
     def ConvertData(self, DataArray):
         # Make sure it is an array
         self.R1pD = array(DataArray)
-
-        if self.R1pD.shape[1] == 4:
-            self.Err = True
-        # If number of columns >4, assume 0:4 are data
-        #  and the remaining columns are unwanted
-        elif self.R1pD.shape[1] > 4:
-            self.R1pD = self.R1pD[:,0:4]
-        else:
-            self.Err = False
 
     #---------------------------#---------------------------#
     # Takes a numerical value from 0-1 and translates
