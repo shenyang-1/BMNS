@@ -168,7 +168,10 @@ def Main():
             # Check for any errors in parsing data
             bme.HandleErrors(errBool, retMsg)
             # Convert semi-raw data to Data class objects
-            i.ConvertData(pInp.DataInp[i.FitNum])
+            if "int" in gl.FitType:
+                i.ConvertData(pInp.DataInp[i.FitNum], DataType = "Ints")
+            else:
+                i.ConvertData(pInp.DataInp[i.FitNum], DataType = "R1p")
             # Randomly remove data if flagged
             if i.deldata != 0.0:
                 i.rnd_rem_data(i.deldata)
@@ -283,6 +286,7 @@ def Main():
                 resid = []
                 # Loop over all Fit objects in Global class object
                 for ob in gl.gObs:
+
                     # --- Get R1Rho Residials --- #
                     if DataType == "R1p":
                         # Unpack data

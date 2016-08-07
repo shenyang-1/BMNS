@@ -67,6 +67,7 @@ def MCError(fx, Params, err, MCnum, Normal=False, AlignMag="auto"):
 #  Error - flag to use uncertainties error propagation
 #########################################################################
 def CalcR2eff(kR1p, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, R1, w1, wrf, lf, AlignMag = "auto", Error = False):
+
     # Convert w1, wrf to rad/sec from Hz
     w1 = float(w1) * 2. * pi
     wrf = float(wrf) * 2. * pi
@@ -88,9 +89,11 @@ def CalcR2eff(kR1p, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, R1, w1, wrf, lf, Alig
                             AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
 
     if Error == False:
-        return (kR1p/sin(thetaAvg)**2.) - (R1/(tan(thetaAvg)**2.))
+        r2e = (kR1p/sin(thetaAvg)**2.) - (R1/(tan(thetaAvg)**2.))
+        return r2e
     else:
-        return (kR1p/umath.sin(thetaAvg)**2.) - (R1/(umath.tan(thetaAvg)**2.))
+        r2e = (kR1p/umath.sin(thetaAvg)**2.) - (R1/(umath.tan(thetaAvg)**2.))
+        return r2e
 
 #########################################################################
 # Magnetization Alignment Vector tool. Needs:

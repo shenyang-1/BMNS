@@ -223,7 +223,8 @@ class GraphFit:
             td3 = concatenate((td1,td2), axis=1)
             # Concatenate original expt data with td3 numpy array to give:
             #  [[Offset, SLP, R1p, R1p error, R2eff, R2eff error, SimR1p, SimR2eff]]
-            td4 = concatenate((d,td3), axis=1)
+            # print d[:,0:4]
+            td4 = concatenate((d, td3), axis=1)
             # Calculate R1p and R2eff residuals:
             #  [[(R1p-SimR1p),(R2eff-SimR2eff)],...]
             residArr = td4[:,[2,4]] - td2
@@ -1174,9 +1175,21 @@ class Data:
     #  then checks to see if the shape of the data
     #  indicates there is error with the data (self.Err bool)
     #---------------------------#---------------------------#
-    def ConvertData(self, DataArray):
+    def ConvertData(self, DataArray, DataType = "R1p"):
         # Make sure it is an array
         self.R1pD = array(DataArray)
+
+        if DataType == "R1p":
+            print self.R1pD.shape
+            # Remove last columns if R1p data
+            if self.R1pD.shape[1] == 4:
+                self.Err = True
+            # If number of columns >4, assume 0:4 are data
+            #  and the remaining columns are unwanted
+            elif self.R1pD.shape[1] > 4:
+                self.R1pD = self.R1pD[:,0:4]
+            else:
+                self.Err = False
 
     #---------------------------#---------------------------#
     # Takes a numerical value from 0-1 and translates
