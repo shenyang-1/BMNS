@@ -256,7 +256,7 @@ def Main():
                             Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
                             # Simulated decay vector
                             pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
-                                                    lf, Ints, Dlys, ob.AlignMag)
+                                                    lf, Dlys, ob.AlignMag)
                             # Calculate residual of this vector and the intensities
                             chisq += ((pv - Ints)**2. / Ints_e).sum()
 
@@ -279,7 +279,6 @@ def Main():
             #                              or:  f(x) - known
             #---------------------------#---------------------------#
             def residual(Params, R1p_MC=None, DataType="R1p"):
-                print Params
                 # Expected R1rho based on simulations
                 resid = []
                 # Loop over all Fit objects in Global class object
@@ -335,7 +334,7 @@ def Main():
                             Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
                             # Simulated decay vector
                             pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
-                                                    lf, Ints, Dlys, ob.AlignMag)
+                                                    lf, Dlys, ob.AlignMag)
                             # Calculate residual of this vector and the intensities
                             resid.append(absolute((pv - Ints) / Ints_e))
 
@@ -545,6 +544,11 @@ def Main():
                                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
                         # Write out / append latest fit data
                         gl.WriteFits(outPath, ob, lp+1, "local")       
+
+                        # Graph fitted decays with B-M simulations
+                        #  get array of full params
+                        fPars = gl.UnpackgP0(fitted.x, ob)
+                        grph.PlotDecays(ob, outLocal, fPars, lp+1, FitType="local")
 
                         # Calculate fit stats
                         sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,

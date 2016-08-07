@@ -533,7 +533,7 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
 #              Avg = aligns along average
 #              GS  = Aligns along ground-state
 #########################################################################
-def BMFitFunc_ints(Params, w1, wrf, lf, ints, time, AlignMag="auto"):
+def BMFitFunc_ints(Params, w1, wrf, lf, time, AlignMag="auto"):
     # Unpack Parameters
     pB, pC, dwB, dwC, kexAB, kexAC, kexBC, R1, R1b, R1c, R2, R2b, R2c = Params
     pA = 1. - (pB + pC)
