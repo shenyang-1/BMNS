@@ -331,16 +331,33 @@ def Main():
                         # Parse 'Params' down to only the local values
                         #  and handle shared and fix parameters.
                         tPars = gl.UnpackgP0(Params, ob)
-                        # Loop over index values in data
-                        for d in ob.R1pD:
-                            # Unpack data
-                            Offs, SLPs = d[:,1], d[:,2]
-                            Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
-                            # Simulated decay vector
-                            pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
-                                                    lf, Dlys, ob.AlignMag)
-                            # Calculate residual of this vector and the intensities
-                            resid.append(absolute((pv - Ints) / Ints_e))
+
+                        # Take in error corrupted R1p values
+                        if R1p_MC is not None:
+                            # Loop over index values in data
+                            for d in ob.R1pD_MC:
+                                # Unpack data
+                                Offs, SLPs = d[:,1], d[:,2]
+                                Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
+
+                                # Simulated decay vector
+                                pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
+                                                        lf, Dlys, ob.AlignMag)
+                                # Calculate residual of this vector and the intensities
+                                resid.append(absolute((pv - Ints) / Ints_e))
+                        # No error corrupted intensities
+                        else:
+                            # Loop over index values in data
+                            for d in ob.R1pD:
+                                # Unpack data
+                                Offs, SLPs = d[:,1], d[:,2]
+                                Dlys, Ints, Ints_e = d[:,3], d[:,4], d[:,5]
+
+                                # Simulated decay vector
+                                pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
+                                                        lf, Dlys, ob.AlignMag)
+                                # Calculate residual of this vector and the intensities
+                                resid.append(absolute((pv - Ints) / Ints_e))
 
                 resid = asarray(resid)
                 if DataType == "Ints":
@@ -526,6 +543,32 @@ def Main():
                     fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000,
                                            method='trf', kwargs={'DataType': 'Ints'})
 
+                    # This will estimate R1p parameter errors as standard dev
+                    #  from MC normal error corruption and re-fit of R1p vals
+                    if mcerr == True:
+
+                        tpars = []
+                        # Error corrupt R1p values normally around mu=R1p, sigma=R1p_err
+                        for i in range(fitMC):
+                            # Print out MC iteration number to terminal - flush
+                            sys.stdout.write("\r    --- Monte-Carlo Error Estimation (%s of %s) ---" % (i+1, fitMC))
+                            sys.stdout.flush()
+
+                            # Iterate over sub ojects in fit
+                            for ob in gl.gObs:
+                                # Copy real int data to MC array for error corruption
+                                ob.R1pD_MC = ob.R1pD.copy()
+                                for d, c in zip(ob.R1pD, ob.R1pD_MC):
+                                    # Noise corrupt intensities by error
+                                    c[:,4] = array([normal(y, ye) for y, ye in zip(d[:,4], d[:,5])])
+
+                            # Fit noise-corrupted R1p data, append fits only to list
+                            tpars.append(least_squares(residual, fitted.x, bounds = gl.gBnds, max_nfev=10000,
+                                                       kwargs={'R1p_MC': True, 'DataType': 'Ints'}).x)
+
+                        # Combine all fit parameters to one numpy array
+                        MCpars = asarray(tpars).astype(float64)
+
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     ### Update Fit (local) Class Objects Here ###         
                     # 1. Unpack local fitted parameters
@@ -536,12 +579,27 @@ def Main():
                         chisq = chi2(fitted.x, DataType="Ints")
                         redChiSq = chisq / gl.dof
 
-                        # #   Here: Standard error of the fit is used
-                        if ob.R1pD[:,0][:,5].sum() != 0.:
-                            fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun,
-                                                      fitted.jac, gl.dof)
+                        if mcerr == False:
+                            # #   Here: Standard error of the fit is used
+                            if ob.R1pD[:,0][:,5].sum() != 0.:
+                                fiterr,_,_,_ = sf.cStdErr(fitted.x, fitted.fun,
+                                                          fitted.jac, gl.dof)
+                            else:
+                                fiterr = zeros(fitted.x.shape)
+
+                        # Handle MC error write out and plotting
                         else:
-                            fiterr = zeros(fitted.x.shape)
+                            #   Here: Monte-Carlo parameter error estimation
+                            fiterr = MCpars.std(axis=0)
+                            # Get all indv red chi-sqs
+                            RCS_list = array([chi2(fitted.x, DataType="Ints")/gl.dof for x in MCpars])
+                            # Write out MC error corrupted fits to separate CSV
+                            for idx,(f,r) in enumerate(zip(MCpars, RCS_list)):
+                                # Unpack MC err corrupt fits to object mcfits
+                                gl.UnPackFits(idx+1, gl.UnpackgP0(f, ob), r,
+                                              fitted.nfev, "mcerr", ob, errPars=gl.UnpackErr(fiterr, ob))
+                                # Write out / append MC error corrupted fit data
+                                gl.WriteFits(outPath, ob, idx+1, "mcerr")  
 
                         # Unpack global fit param array to local values for Fit object
                         gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
