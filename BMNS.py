@@ -145,7 +145,10 @@ def Main():
 
         ## Grab fit types
         gl.GrabFitType(pInp.FitType)
-
+        if "int" in gl.FitType:
+            dataType = "Ints"
+        else:
+            dataType = "R1p"
         ## Loop over fit objects in global class object
         #  Read in and convert parameter and data files
         for i in gl.gObs:
@@ -157,10 +160,10 @@ def Main():
             #   Check to see if fit type specifies fitting for intensities with
             #   the 'int' keyword
             if "int" in gl.FitType:
-                errBool, tMsg = pInp.ParseData(dataPath, i.name, "Ints")
+                errBool, tMsg = pInp.ParseData(dataPath, i.name, dataType)
                 retMsg += tMsg
             else:
-                errBool, tMsg = pInp.ParseData(dataPath, i.name, "R1p")
+                errBool, tMsg = pInp.ParseData(dataPath, i.name, dataType)
                 retMsg += tMsg
             # Copy original data
             subprocess.call(["cp", os.path.join(dataPath, i.name + ".csv"),
@@ -169,9 +172,9 @@ def Main():
             bme.HandleErrors(errBool, retMsg)
             # Convert semi-raw data to Data class objects
             if "int" in gl.FitType:
-                i.ConvertData(pInp.DataInp[i.FitNum], DataType = "Ints")
+                i.ConvertData(pInp.DataInp[i.FitNum], DataType = dataType)
             else:
-                i.ConvertData(pInp.DataInp[i.FitNum], DataType = "R1p")
+                i.ConvertData(pInp.DataInp[i.FitNum], DataType = dataType)
             # Randomly remove data if flagged
             if i.deldata != 0.0:
                 i.rnd_rem_data(i.deldata)
@@ -180,7 +183,7 @@ def Main():
         gl.MapGlobalP0()
 
         ## Calculate total degrees of freedom in data
-        gl.CalcDOF()
+        gl.CalcDOF(DataType = dataType)
 
         ## Make local, global and polished folders in outpath
         outLocal = os.path.join(outPath, "Local")
@@ -260,8 +263,9 @@ def Main():
                             # Simulated decay vector
                             pv = sim.BMFitFunc_ints(tPars, SLPs[0], -Offs[0],
                                                     lf, Dlys, ob.AlignMag)
+
                             # Calculate residual of this vector and the intensities
-                            chisq += ((pv - Ints)**2. / Ints_e).sum()
+                            chisq += (((pv - Ints) / Ints_e)**2.).sum()
 
                 ### Check for 'NaN' or 'inf' chi-square ###
                 #  These are sometimes genereated when magnetization
@@ -515,6 +519,7 @@ def Main():
                                               fitted.nfev, "mcerr", ob, errPars=gl.UnpackErr(fiterr, ob))
                                 # Write out / append MC error corrupted fit data
                                 gl.WriteFits(outPath, ob, idx+1, "mcerr")  
+
                         # Unpack global fit param array to local values for Fit object
                         gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
                                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
@@ -576,7 +581,7 @@ def Main():
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     for ob in gl.gObs:
                         # Reduced chi-square = chi-square / (N (data points) - M (free parameters))
-                        chisq = chi2(fitted.x, DataType="Ints")
+                        chisq = chi2(fitted.x, DataType=dataType)
                         redChiSq = chisq / gl.dof
 
                         if mcerr == False:
@@ -592,7 +597,7 @@ def Main():
                             #   Here: Monte-Carlo parameter error estimation
                             fiterr = MCpars.std(axis=0)
                             # Get all indv red chi-sqs
-                            RCS_list = array([chi2(fitted.x, DataType="Ints")/gl.dof for x in MCpars])
+                            RCS_list = array([chi2(fitted.x, DataType=dataType)/gl.dof for x in MCpars])
                             # Write out MC error corrupted fits to separate CSV
                             for idx,(f,r) in enumerate(zip(MCpars, RCS_list)):
                                 # Unpack MC err corrupt fits to object mcfits

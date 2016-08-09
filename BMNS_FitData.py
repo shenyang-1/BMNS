@@ -92,6 +92,8 @@ class GraphFit:
             ax.set_ylim(-0.05, 1.05)
             fig.tight_layout()
             pp.savefig()
+            plt.close()
+            plt.clf()
         pp.close()
     #---------------------------#---------------------------#
     # Takes a path to input text file and parses it accordingly
@@ -1180,7 +1182,6 @@ class Data:
         self.R1pD = array(DataArray)
 
         if DataType == "R1p":
-            print self.R1pD.shape
             # Remove last columns if R1p data
             if self.R1pD.shape[1] == 4:
                 self.Err = True
@@ -1535,10 +1536,14 @@ class Global():
     #  total data being fitted, length of the parameters
     #  being fitted, and the number of degrees of freedom.
     #---------------------------#---------------------------# 
-    def CalcDOF(self):
+    def CalcDOF(self, DataType="R1p"):
         # Calculate total data size
         for ob in self.gObs:
-            self.dataSize += len(ob.R1pD)
+            # self.dataSize += len(ob.R1pD)
+            if DataType == "R1p":
+                self.dataSize += ob.R1pD.shape[0]
+            elif DataType == "Ints":
+                self.dataSize += ob.R1pD.shape[0] * ob.R1pD.shape[1]
 
         # Calculate number of floating parameters
         self.freePars = len(self.gP0)
