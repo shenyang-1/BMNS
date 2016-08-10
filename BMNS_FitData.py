@@ -19,8 +19,12 @@ from numpy import delete
 from numpy import float64
 from numpy import interp
 from numpy import linspace, logspace, log10
+from numpy import nan
 from numpy import shape
+from numpy import tile
 from numpy import unique
+from numpy import vstack
+from numpy import zeros
 ### Numpy sub imports ###
 from numpy.random import choice, uniform
 from numpy.core.defchararray import rstrip
@@ -820,6 +824,7 @@ class Parse:
         #  If it does, unpack it.
         if os.path.isfile(dPath):
             tData = self.CsvTabData(dPath, fileExt)
+
             # First check to see if first column is a alphanumeric title
             try:
                 # Cast first column as floats
@@ -1531,6 +1536,43 @@ class Global():
                       ob.Pars['R2_%s'%ob.FitNum][6], ob.Pars['R2b_%s'%ob.FitNum][6],
                       ob.Pars['R2c_%s'%ob.FitNum][6]])
 
+
+    #---------------------------#---------------------------#
+    # 'RegIrregArr' standardizes the shape of an irregular
+    #  numpy dtype array to be the largest value in the array
+    # Takes irregular numpy array and returns regular numpy
+    # array
+    #---------------------------#---------------------------#     
+    def RegIrregArr(self, irr_arr):
+        reg_arr = []
+        max_size = 0
+        best_shape = None
+        # Get largest element of ob
+        for i in irr_arr:
+            t_size = asarray(i).shape[0]
+            if t_size > max_size:
+                max_size = t_size
+                best_shape = asarray(i).shape
+        # Fill in difference shape with nans
+        for i in irr_arr:
+            t_ar = array(i)
+            if t_ar.shape != best_shape:
+                # Calculate number of rows and cols needed
+                t_row = best_shape[0] - t_ar.shape[0]
+                t_col = best_shape[1] - t_ar.shape[1]
+                # If need rows, but not cols
+                if t_row != 0 and t_col == 0:
+                    # Get index
+                    t_idx = t_ar[0][0]
+                    # Create difference array with nan values
+                    i_ar = zeros((t_row, t_ar.shape[1])) + nan
+                    # Insert index as first column
+                    i_ar[:,0] = t_idx
+                    out_ar = vstack((t_ar, i_ar))
+                    reg_arr.append(out_ar)
+        reg_arr = asarray(reg_arr)
+        return reg_arr
+
     #---------------------------#---------------------------#
     # 'DOF' simply calculates the total length of the
     #  total data being fitted, length of the parameters
@@ -1543,7 +1585,15 @@ class Global():
             if DataType == "R1p":
                 self.dataSize += ob.R1pD.shape[0]
             elif DataType == "Ints":
-                self.dataSize += ob.R1pD.shape[0] * ob.R1pD.shape[1]
+                # Check for irregularly sized array
+                if len(ob.R1pD.shape) == 1:
+                    for d in ob.R1pD:
+                        td = asarray(d)
+                        self.dataSize += td.shape[0]
+                    ob.R1pD = self.RegIrregArr(ob.R1pD)
+                    print ob.R1pD.shape
+                else: # If not irregularly sized
+                    self.dataSize += ob.R1pD.shape[0] * ob.R1pD.shape[1]
 
         # Calculate number of floating parameters
         self.freePars = len(self.gP0)

@@ -18,7 +18,6 @@ Now to run a fit from any directory just use:
 > bm -gensim [directory to write out simulation input script]
 > bm -3d [simulation magnetization vectors csv]
 > bm -plotbrute [brute-force fit CSV] [param name #1, e.g. pb] [param name #2]
-> bm -thermo [BM fit.csv] [temperature, C or K]
 
 ######################
 ##   Example Fits   ##

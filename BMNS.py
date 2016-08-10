@@ -621,8 +621,11 @@ def Main():
                         sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
                                       gl.freePars, chisq, redChiSq, lp+1, "local")
 
+                # Brute-force fit intensitites across parameter space
+                elif gl.FitType == "bruteint" or gl.FitType == "bruteintp":
+                    pass
                 # Brute-force across parameter range
-                elif "brute" in gl.FitType:
+                elif gl.FitType == "brute" or gl.FitType == "brutep":
                     #########################################################################
                     # Monte-Carlo multiprocessing functions used to avoid
                     #  pickling error in multiprocessing.Process function
@@ -1198,8 +1201,11 @@ Labels on
 #                   space designated by lower/upper bounds on parameters.
 #          - 'brutep' will generate plots at each increment point.
 #             WARNING: This can take a LONG time.
+#          'Bruteint' brute-forces parameter space by fitting intensities instead of
+#                     R1p values
 #
 #          'Local' uses Levenberg-Marquardt semi-gradient descent/Gauss-Newton algorithm
+#          - 'localint' fits intensities directly rather than R1p
 #          'Global' uses the "Adaptive Memory Programming for Global Optimizations"
 #                   algorithm, with the local 'L-BFGS-B' function, and polishes the
 #                   global optimum with L-M.
