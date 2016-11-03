@@ -1564,10 +1564,8 @@ class Global():
                 if t_row != 0 and t_col == 0:
                     # Get index
                     t_idx = t_ar[0][0]
-                    # Create difference array with nan values
-                    i_ar = zeros((t_row, t_ar.shape[1])) + nan
-                    # Insert index as first column
-                    i_ar[:,0] = t_idx
+                    # Create difference array first value repeated
+                    i_ar = tile(t_ar[0], (t_row, 1))
                     out_ar = vstack((t_ar, i_ar))
                     reg_arr.append(out_ar)
         reg_arr = asarray(reg_arr)
@@ -1591,7 +1589,6 @@ class Global():
                         td = asarray(d)
                         self.dataSize += td.shape[0]
                     ob.R1pD = self.RegIrregArr(ob.R1pD)
-                    print ob.R1pD.shape
                 else: # If not irregularly sized
                     self.dataSize += ob.R1pD.shape[0] * ob.R1pD.shape[1]
 

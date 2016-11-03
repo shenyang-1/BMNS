@@ -1,0 +1,2 @@
+Run:
+bm -fitmc Fit-InputPars.txt . Test-Indv-2State/
