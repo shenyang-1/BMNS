@@ -1,0 +1,10 @@
+Carry out global/shared parameter fit.
+bm -fit GloFit.txt . 1GloFit
+
+Carry out combined individual fits.
+bm -fit IndFit.txt . 2IndFit
+
+Compare models by pointing to one of the LocalStats files for each model
+bm -compare 1GloFit/LocalStats_dG15N1-mc.csv 2IndFit/LocalStats_dG15N1-mc.csv
+
+Output is a CSV detailing the BIC and AIC values and the delta_AIC/BIC values.

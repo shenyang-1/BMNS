@@ -1,0 +1,8 @@
+Fit #1
+dG15N1-mc Pars,Fit Value,Error
+pB (%),0.121,0.001
+dwB (ppm),38.22,0.18
+kexAB (s^-1),6793,157
+R1 (s^-1),2.60,0.02
+R2 (s^-1),5.06,0.10
+Red. Chi-sq,0.40
