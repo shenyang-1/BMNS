@@ -1,7 +1,7 @@
 #########################################################################
 # Bloch-McConnell 2-/3-state Fitting Program v1.25
 #  Beta version.
-#  Isaac Kimsey 02-11-2016
+#  Isaac Kimsey 01-01-2017
 #
 # External Dependencies: numpy, matplotlib, scipy, leastsqbound, uncertainties
 #########################################################################
@@ -15,7 +15,7 @@ import sys, os
 def CheckErrArgs(curDir, argc, argv):
 
     exitBool = False # Bool to determine if program exits
-    # Check if enough arguments were passed through command line 
+    # Check if enough arguments were passed through command line
     #   to be able to run the program.
     if argc != 6:
         tstr = '''
@@ -61,7 +61,7 @@ def CheckErrArgs(curDir, argc, argv):
 #########################################################################
 def CheckArgs(curDir, argc, argv):
     exitBool = False # Bool to determine if program exits
-    # Check if enough arguments were passed through command line 
+    # Check if enough arguments were passed through command line
     #   to be able to run the program.
     if 2 <= argc <= 3:
         print '''
@@ -120,7 +120,7 @@ def help():
   Takes in R1rho data and error (optional) and fits
    the data to the Bloch-McConnell numerical equations
    with different local and global fitting algorithms.
-  
+
    arg1 '-fit'
    arg2 Parameter Text File
         - See Example\pExample.txt
@@ -140,7 +140,7 @@ def help():
   Takes in R1rho data and error (optional) and fits
    the data to the Bloch-McConnell numerical equations
    with different local and global fitting algorithms.
-  
+
    arg1 '-fitmc'
    arg2 Parameter Text File
         - See Example\pExample.txt
@@ -152,7 +152,7 @@ def help():
    arg4 Output directory for fit data (Optional)
    arg5 Monte-Carlo Iteration number (optional)
 
-   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder] 100\n'''   
+   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder] 100\n'''
 
     print '''
   ####################################################################
@@ -163,7 +163,7 @@ def help():
     to the given fit file and rename it with a "thermo" suffix.
   Errors in calculations are propogated by linear error propogation theory
     using the Uncertainties Python package.
-  
+
   >BMNS.py -thermo [fit.csv] [Temp (C or K)]\n'''
 
     print '''
@@ -176,7 +176,7 @@ def help():
   This assumes the underlying data for each model is IDENTICAL.
   Output is terminal text that describes the best model based on AIC/BIC
   values and relative weights to one another
-  
+
   >BMNS.py -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]\n'''
 
     print '''
@@ -184,7 +184,7 @@ def help():
   #####   -tab2csv : Convert tab file to csv file  #####
   ######################################################
   Takes in a tab file and converts to csv
-  
+
   >BMNS.py -tab2csv [tab file]\n'''
 
     print '''
@@ -193,5 +193,5 @@ def help():
   ######################################################
   Uses MC/Bootstrap approach to generate error in
   fitted parameters in given .csv file.
-  
+
   >BMNS.py -genpar [output folder] [Name, optional]\n'''
