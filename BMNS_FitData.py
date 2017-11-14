@@ -1338,8 +1338,9 @@ class Global():
         # Create a list of all the dictionary keys for
         #  each global object self.Pars dict
         self.gKeys = [x.Pars.keys() for x in self.gObs]
+
         # Flatten to 1D and include only those within the gVar dictionary
-        self.gKeys = [x for x in list(it.chain.from_iterable(self.gKeys)) if x[:-2] in self.gVar]
+        self.gKeys = [x for x in list(it.chain.from_iterable(self.gKeys)) if x.split("_")[0] in self.gVar]
 
         ## Match up shared and fixed parameters ##
         # Loop over parent variable names
@@ -1348,7 +1349,8 @@ class Global():
             # Construct a temp list of keys sharing the same 
             #  parent name of var
             # e.g. pB = [pB_0, pB_1, pB_2,...,etc]
-            td = [x for x in self.gKeys if var in x and len(var)+2 == len(x)]
+            td = [x for x in self.gKeys if var+"_" in x]# and len(var)+2 == len(x)]
+
             # List of parameter keys to keep if they are shared
             keep = []
             # Loop over td and match subkeys to shared
@@ -1373,7 +1375,6 @@ class Global():
                         self.gShared[keep[k]] = keep[0]
                         # Map share name in Pars[key]
                         self.gObs[int(keep[k].split("_")[-1])].Pars[keep[k]][4] = keep[0]
-
         # -- Fixed Parameters -- #
         for key in self.gKeys:
             idx = int(key.split("_")[-1])

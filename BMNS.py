@@ -3,10 +3,10 @@
 #  Beta version.
 #  Isaac Kimsey 02-11-2016
 #
-# External Dependencies: numpy, matplotlib, scipy, leastsqbound, uncertainties
+# External Dependencies: numpy, matplotlib, scipy, uncertainties
 #########################################################################
 
-### Libraries Needed: numpy, matplotlib, scipy, ampgo, leastsqbound ###
+### Libraries Needed: numpy, matplotlib, scipy, ampgo ###
 # General libraries
 import os, sys
 import subprocess
@@ -151,7 +151,7 @@ def Main():
             dataType = "R1p"
         ## Loop over fit objects in global class object
         #  Read in and convert parameter and data files
-        for i in gl.gObs:
+        for idx, i in enumerate(gl.gObs):
             # Convert semi-raw parameter data to Parameter self.Pars dictionary
             #  Also passes Variable names so that they can be seen to exist
             i.ConvertPars(pInp.ParInp[i.FitNum])
@@ -165,6 +165,8 @@ def Main():
             else:
                 errBool, tMsg = pInp.ParseData(dataPath, i.name, dataType)
                 retMsg += tMsg
+            # print(i.name, i.Pars['pB_%s'%idx], i.Pars['pC_%s'%idx])
+            
             # Copy original data
             subprocess.call(["cp", os.path.join(dataPath, i.name + ".csv"),
                              os.path.join(copyPath, "copy-" + i.name + ".csv")])
