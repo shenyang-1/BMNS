@@ -12,7 +12,7 @@ import BMNS_Stats as sf
 #---------------------------#---------------------------#
 # 'PlotBrute' plots brute-forced fitting parameters as a 2D contour plot of
 #   red. chi square and normalized red. chi square
-#---------------------------#---------------------------# 
+#---------------------------#---------------------------#
 def PlotBrute(args, outPath):
     # Plotting default settings
     rcParams['pdf.fonttype'] = 42
@@ -59,8 +59,8 @@ def PlotBrute(args, outPath):
             zs = np.array([(zi-zs.min())/(zs.max() - zs.min()) for zi in zs])
 
             # -- Plot Red. Chi-Square Contours -- #
-            fig = plt.figure(figsize=(12, 8), dpi=100)
-            CS = plt.tricontourf(x,y,z, 100)
+            fig = plt.figure(figsize=(12, 8), dpi=200)
+            CS = plt.tricontourf(x,y,z, 50, cmap=plt.cm.coolwarm)
             if fitflag == "-plotbrute":
                 cbar = plt.colorbar(CS)
                 cbar.ax.set_ylabel(r'$\overline{\chi}^2$', fontsize=24, rotation=0,labelpad=15)
@@ -81,8 +81,8 @@ def PlotBrute(args, outPath):
             plt.clf()
 
             # -- Plot Normalized Red. Chi-Square Contours -- #
-            fig = plt.figure(figsize=(12, 8), dpi=100)
-            CS = plt.tricontourf(x,y,zs, 100)
+            fig = plt.figure(figsize=(12, 8), dpi=200)
+            CS = plt.tricontourf(x,y,zs, 50, cmap=plt.cm.coolwarm)
             if fitflag == "-plotbrute":
                 cbar = plt.colorbar(CS)
                 cbar.ax.set_ylabel(r'$Best\,fit\,probability$', fontsize=24, rotation=-90,labelpad=30)

@@ -110,8 +110,6 @@ def HandleErrors(exitBool, message):
 # Default help menu #
 #########################################################################
 def help():
-    print "BMNS v1.25"
-    print "Libraries Needed: numpy, matplotlib, scipy, leastsqbound\n"
     print "Usage is as follows:"
     print '''
   ######################################################

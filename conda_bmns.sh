@@ -18,4 +18,4 @@ echo $envname
 conda create -y --name $envname python=$python_version
 source activate $envname
 conda install -y -q -c numpy matplotlib scipy joblib pandas
-conda install -c conda-forge uncertainties
+conda install -y -q -c conda-forge uncertainties

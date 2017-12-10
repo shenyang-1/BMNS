@@ -1,12 +1,9 @@
 #########################################################################
-# Bloch-McConnell 2-/3-state Fitting Program v1.25
+# Bloch-McConnell 2-/3-state Fitting Program
 #  Beta version.
 #  Isaac Kimsey 02-11-2016
-#
-# External Dependencies: numpy, matplotlib, scipy, uncertainties
 #########################################################################
 
-### Libraries Needed: numpy, matplotlib, scipy, ampgo ###
 # General libraries
 import os, sys
 import subprocess
@@ -34,25 +31,28 @@ from numpy import zeros
 ### Numpy sub imports ###
 from numpy.random import normal, seed
 ### Scipy/Other General Fitting Algs ###
-from scipy.optimize import minimize # Local minimum, see Nelder-Mead
 from scipy.optimize import least_squares
 # from leastsqbound import leastsqbound    # Local LS fits with bounds
 # Uncertainties calculations
-from uncertainties import umath
 from uncertainties import ufloat
 
-from joblib import Parallel, delayed  
+from joblib import Parallel, delayed
 # import multiprocessing
 from multiprocessing import Manager, Process, Pipe, Pool, cpu_count
-from itertools import izip
+
 #########################################################################
 # Create a folder if it does not already exist #
 #########################################################################
 def makeFolder(pathToFolder):
-    if not os.path.exists(pathToFolder): 
-        os.makedirs(pathToFolder) 
+    """
+    Makes a folder from given path if
+    it does not exist already.
+    """
+    if not os.path.exists(pathToFolder):
+        os.makedirs(pathToFolder)
 
 def Main():
+    """
     #########################################################################
     # Bloch-McConnell 2-/3-state R1rho Fitting
     #########################################################################
@@ -73,6 +73,7 @@ def Main():
     #         If not given, will generate folder in
     #         parent data directory.
     #-----------------------------------------------------------------------#
+    """
     if "fit" in sys.argv[1].lower():
         ## Check if user wants to do a MC error estimation
         # number of MC iterations for error estimation
@@ -101,7 +102,7 @@ def Main():
         errBool = False
         # String for error messages.
         #  if runBool is ultimately False, these error messages will show up.
-        retMsg = "" 
+        retMsg = ""
 
         ## Define input/output Paths ##
         parPath = os.path.join(curDir, sys.argv[2])  # Path to input parameters
@@ -119,7 +120,7 @@ def Main():
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Parse given parameter input text file
-        # Generate class objects for each corresponding given set of data 
+        # Generate class objects for each corresponding given set of data
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ## Handle input parameter file ##
         # Generate a Data Parsing Class Object to handle input data
@@ -166,7 +167,7 @@ def Main():
                 errBool, tMsg = pInp.ParseData(dataPath, i.name, dataType)
                 retMsg += tMsg
             # print(i.name, i.Pars['pB_%s'%idx], i.Pars['pC_%s'%idx])
-            
+
             # Copy original data
             subprocess.call(["cp", os.path.join(dataPath, i.name + ".csv"),
                              os.path.join(copyPath, "copy-" + i.name + ".csv")])
@@ -194,7 +195,7 @@ def Main():
         # Make statistics output folder paths
         pstatsP = os.path.join(outPolish, "Matrices")
         lstatsP = os.path.join(outLocal, "Matrices")
-        # Make output folders depending on fit type    
+        # Make output folders depending on fit type
         if gl.FitType == "global":
             makeFolder(outGlobal)
             makeFolder(outPolish)
@@ -214,7 +215,7 @@ def Main():
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Fit Bloch-McConnell (2-/3-state) to experimental or simulated data
         #  Option to fit using R1rho error
-        #   inData = 
+        #   inData =
         #   P0 = Vector of initial guess for parameters for fit
         #        contents vary depending on parameters being fit
         #   time = vector of time increments (sec) from Tmin-Tmax
@@ -248,7 +249,7 @@ def Main():
                         # If no error in value, chisq = (o-e)^2/e
                         else:
                             chisq += sum([((sim.BMFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)**2./kR1p)
-                                          for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)]) 
+                                          for (SL,OF,kR1p,err) in zip(Spinlock,Offs,R1p,R1p_e)])
 
                     # --- Get Intensity Residials --- #
                     elif DataType == "Ints":
@@ -329,7 +330,7 @@ def Main():
                             # If no error in value, residual matrix = f(x) - obs
                             else:
                                 resid += [(sim.LagFitFunc(tPars,SL,-1.*OF,lf,ob.time,ob.AlignMag,0,kR1p)-kR1p)
-                                              for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]            
+                                              for (SL,OF,kR1p) in zip(Spinlock,Offs,R1p)]
                     # --- Get Intensity Residials --- #
                     elif DataType == "Ints":
                         # Unpack parameters
@@ -390,12 +391,12 @@ def Main():
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             for lp in range(gl.FitLoops):
                 if gl.FitType == "global":
-                    print "~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)  
-                    print "  (Adaptive Memory Programming for Global Optimums)  "    
+                    print "~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+                    print "  (Adaptive Memory Programming for Global Optimums)  "
                     if mcerr == True:
-                        print '''   * Monte-Carlo error flagged but will not 
+                        print '''   * Monte-Carlo error flagged but will not
                           be estimated with global fits *'''
-                    # Randomize initial guess, if flagged          
+                    # Randomize initial guess, if flagged
                     if gl.rndStart == True:
                         tP0 = gl.RandomgP0()
                     else:
@@ -407,7 +408,7 @@ def Main():
                                          totaliter=10, disp=0, maxfunevals=2000)
 
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    ### Update Fit (global) Class Objects Here ###         
+                    ### Update Fit (global) Class Objects Here ###
                     # 1. Unpack global fitted parameters
                     # 2. Write out fits and reduced chi^2 (chi-sq/dof)
                     # 3. Write out graphs of fitted R1rho and R2+Rex and the residuals
@@ -419,7 +420,7 @@ def Main():
                         gl.UnPackFits(lp+1, gl.UnpackgP0(fitted[0], ob), redChiSq, fitted[2], "global", ob)
 
                         # Write out / append latest fit data
-                        gl.WriteFits(outPath, ob, lp+1, "global") 
+                        gl.WriteFits(outPath, ob, lp+1, "global")
 
                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
                         grph.WriteGraph(ob, outGlobal, lp+1, ob.time, "global")
@@ -430,7 +431,7 @@ def Main():
                     fitted = least_squares(residual, fitted[0], bounds = gl.gBnds, max_nfev=10000)
 
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    ### Update Fit (polish) Class Objects Here ###         
+                    ### Update Fit (polish) Class Objects Here ###
                     # 1. Unpack local fitted parameters
                     # 2. Write out fits and reduced chi^2 (chi-sq/dof)
                     # 3. Write out graphs of fitted R1rho and R2+Rex and the residuals
@@ -449,7 +450,7 @@ def Main():
                                       fitted.nfev, "polish", ob, errPars=gl.UnpackErr(fiterr, ob))
 
                         # Write out / append latest fit data
-                        gl.WriteFits(outPath, ob, lp+1, "polish")       
+                        gl.WriteFits(outPath, ob, lp+1, "polish")
 
                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
                         grph.WriteGraph(ob, outPolish, lp+1, ob.time, "polish")
@@ -459,8 +460,8 @@ def Main():
                                       gl.freePars, chisq, redChiSq, lp+1, "polish")
                 # Local Fit
                 elif gl.FitType == "local":
-                    print "~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)  
-                    print "                 (Levenberg-Marquardt)  " 
+                    print "~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+                    print "                 (Levenberg-Marquardt)  "
 
                     # Randomize initial guess, if flagged
                     if gl.rndStart == True:
@@ -479,7 +480,7 @@ def Main():
                         for i in range(fitMC):
                             # Print out MC iteration number to terminal - flush
                             sys.stdout.write("\r    --- Monte-Carlo Error Estimation (%s of %s) ---" % (i+1, fitMC))
-                            sys.stdout.flush()             
+                            sys.stdout.flush()
                             # Iterate over sub ojects in fit
                             for ob in gl.gObs:
                                 ob.R1p_MC = array([normal(y, ye) for y, ye in zip(ob.R1pD[:,2], ob.R1pD[:,3])])
@@ -490,7 +491,7 @@ def Main():
                         MCpars = asarray(tpars).astype(float64)
 
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    ### Update Fit (local) Class Objects Here ###         
+                    ### Update Fit (local) Class Objects Here ###
                     # 1. Unpack local fitted parameters
                     # 2. Write out fits and reduced chi^2 (chi-sq/dof)
                     # 3. Write out graphs of fitted R1rho and R2+Rex and the residuals
@@ -520,13 +521,13 @@ def Main():
                                 gl.UnPackFits(idx+1, gl.UnpackgP0(f, ob), r,
                                               fitted.nfev, "mcerr", ob, errPars=gl.UnpackErr(fiterr, ob))
                                 # Write out / append MC error corrupted fit data
-                                gl.WriteFits(outPath, ob, idx+1, "mcerr")  
+                                gl.WriteFits(outPath, ob, idx+1, "mcerr")
 
                         # Unpack global fit param array to local values for Fit object
                         gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
                                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
                         # Write out / append latest fit data
-                        gl.WriteFits(outPath, ob, lp+1, "local")       
+                        gl.WriteFits(outPath, ob, lp+1, "local")
 
                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
                         grph.WriteGraph(ob, outLocal, lp+1, ob.time, FitType="local", FitEqn=gl.gFitEqn)
@@ -536,8 +537,8 @@ def Main():
                                       gl.freePars, chisq, redChiSq, lp+1, "local")
                 # Fit intensity values directly using local optimization
                 elif gl.FitType == "localint":
-                    print "~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)  
-                    print "                     (Levenberg-Marquardt)  " 
+                    print "~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+                    print "                     (Levenberg-Marquardt)  "
 
                     # Randomize initial guess, if flagged
                     if gl.rndStart == True:
@@ -577,7 +578,7 @@ def Main():
                         MCpars = asarray(tpars).astype(float64)
 
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    ### Update Fit (local) Class Objects Here ###         
+                    ### Update Fit (local) Class Objects Here ###
                     # 1. Unpack local fitted parameters
                     # 2. Write out fits and reduced chi^2 (chi-sq/dof)
                     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -606,13 +607,13 @@ def Main():
                                 gl.UnPackFits(idx+1, gl.UnpackgP0(f, ob), r,
                                               fitted.nfev, "mcerr", ob, errPars=gl.UnpackErr(fiterr, ob))
                                 # Write out / append MC error corrupted fit data
-                                gl.WriteFits(outPath, ob, idx+1, "mcerr")  
+                                gl.WriteFits(outPath, ob, idx+1, "mcerr")
 
                         # Unpack global fit param array to local values for Fit object
                         gl.UnPackFits(lp+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
                                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
                         # Write out / append latest fit data
-                        gl.WriteFits(outPath, ob, lp+1, "local")       
+                        gl.WriteFits(outPath, ob, lp+1, "local")
 
                         # Graph fitted decays with B-M simulations
                         #  get array of full params
@@ -666,9 +667,9 @@ def Main():
                         print "    Iteration %s of %s" % (idx+1, len(gl.brutegP0))
                         allfits = {}
                         # Don't let it fit, just 1 iteration
-                        fitted = least_squares(residual, gf, bounds = gl.gBnds, max_nfev=1) 
+                        fitted = least_squares(residual, gf, bounds = gl.gBnds, max_nfev=1)
                         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                        ### Update Fit (local) Class Objects Here ###         
+                        ### Update Fit (local) Class Objects Here ###
                         # 1. Unpack local fitted parameters
                         # 2. Write out fits and reduced chi^2 (chi-sq/dof)
                         # 3. Write out graphs of fitted R1rho and R2+Rex and the residuals
@@ -688,7 +689,7 @@ def Main():
                             gl.UnPackFits(idx+1, gl.UnpackgP0(fitted.x, ob), redChiSq,
                                           fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
                             # Write out / append latest fit data
-                            gl.WriteFits(outPath, ob, idx+1, "local")       
+                            gl.WriteFits(outPath, ob, idx+1, "local")
 
                             # If flagged in input file, generate graphs for all curves
                             if gl.FitType == "brutep":
@@ -725,14 +726,14 @@ def Main():
                         gl.UnPackFits(lastval, gl.UnpackgP0(fitted.x, ob), redChiSq,
                                       fitted.nfev, "local", ob, errPars=gl.UnpackErr(fiterr, ob))
                         # Write out / append latest fit data
-                        gl.WriteFits(outPath, ob, lastval, "local")       
+                        gl.WriteFits(outPath, ob, lastval, "local")
 
                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
                         grph.WriteGraph(ob, outLocal, lastval, ob.time, FitType="local", FitEqn=gl.gFitEqn)
 
                         # Calculate fit stats
                         sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
-                                      gl.freePars, chisq, redChiSq, lastval, "local")          
+                                      gl.freePars, chisq, redChiSq, lastval, "local")
 
                 else:
                     print "Fit Type not declared properly (global or local)"
@@ -792,7 +793,7 @@ def Main():
     #  arg1 '-3d'
     #  arg2 Magnetization vector CSV from simulation
     # Plots the 3D decay of coherence
-    #---------------------------------------------------    
+    #---------------------------------------------------
     elif "3d" in sys.argv[1].lower():
         # Create simulation class object
         sfo = simf.SimFit()
@@ -806,7 +807,7 @@ def Main():
     #  arg2 Tab delimited file
     # Will dump csv file of same name to same directory
     #---------------------------------------------------
-    elif (argc == 3 and sys.argv[1].lower() == "-tab2csv" 
+    elif (argc == 3 and sys.argv[1].lower() == "-tab2csv"
           and os.path.isfile(os.path.join(curDir, sys.argv[2]))):
         tabPath = os.path.join(curDir, sys.argv[2])
         csvPath = os.path.join(curDir, sys.argv[2].replace(".tab",".csv"))
@@ -1096,9 +1097,9 @@ MCNum 500
 #   'Symbol' will plot simulated R1rhos as symbol types defined below
 #   'Both' with plot symbols over simulated lines
 # - 'Line' defines the style of the line plot.
-#   Col2: Type of line, see: 
+#   Col2: Type of line, see:
 #   http://matplotlib.org/examples/lines_bars_and_markers/line_styles_reference.html
-#      -   -.  --  or  : 
+#      -   -.  --  or  :
 #     Col3: Line-width, in pixels
 # - 'Symbol' defines the style of the symbol plot.
 #   Col2: Type of symbol, see: http://matplotlib.org/api/markers_api.html
@@ -1189,8 +1190,8 @@ Labels on
                     pars['r1c'] = 0.0
                 if pars['r2'] == pars['r2b'] == pars['r2c']:
                     pars['r2b'] = 0.0
-                    pars['r2c'] = 0.0                
-        
+                    pars['r2c'] = 0.0
+
         outstr = '''
 ##################################################################################
 # Run the BMNS fitting program:
@@ -1224,7 +1225,7 @@ RandomFitStart No
 
 ##################################################################################
 # Define fit parameter data, data names, base freqs,
-#  initial parameter guesses, and paramter lower and upper bounds. 
+#  initial parameter guesses, and paramter lower and upper bounds.
 #
 # Add '+' to read in an additional set of parameters with given 'Name XYZ'
 #   The 'Name' must match a .csv data file in given directory of the same name.
@@ -1241,7 +1242,7 @@ RandomFitStart No
 #
 # If R1b/c or R2b/c are fixed to 0, they will be shared with R1 / R2
 #  e.g. "R1b! = 0.0" will be interpreted as "R1b = R1"
-# 
+#
 # lf = Larmor frequency (MHz) of the nucleus of interest
 #      15N:   60.76302 (600) or  70.960783 (700)
 #      13C: 150.784627 (600) or 176.090575 (700)
