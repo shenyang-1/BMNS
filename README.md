@@ -17,6 +17,9 @@ This program is designed to fit and simulate experimental nuclear magnetic reson
  * Supports grid-search over N-dimensional parameter space in log or linear spaced increments and plotting the search results.
  * Supports model comparison using Akaike's Information Criterion (AIC) and Bayesian Information Criterion (AIC).
 
+<img src="https://github.com/IsaacJK/BMNS/blob/master/Examples/Fit-Indv-2State/R1rho_Figs_dG6C1p-mc_1-1.png?raw=true" width="400" height="300">
+<img src="https://github.com/IsaacJK/BMNS/blob/master/Examples/Fit-Indv-2State/R2eff_Figs_dG6C1p-mc_1-1.png?raw=true" width="400" height="300">
+
 ### Simulation Features
  * Simulate decaying intensities, R1rho, R2eff, and 3D projections of decaying GS/ES vectors.
  * Noise corrupt intensities or R1rho.
