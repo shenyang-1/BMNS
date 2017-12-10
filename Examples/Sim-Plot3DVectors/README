@@ -8,4 +8,4 @@ To plot decays, select a csv file from the magVecs/ folder and run:
 bm -3d [Magnetization CSV file]
 
 E.g.
-bm -3d 3DVecs/MagVecs/-750.0_400.0.csv
+bm -3d 3DVecs/MagVecs/0.0_100.0.csv

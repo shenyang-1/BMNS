@@ -23,12 +23,12 @@
 Params
 #Read BMfit.csv
 lf 150.784627
-AlignMag Auto
+AlignMag auto
 pB 0.05
 pC 0.0
 dwB 3.0
 dwC 0.0
-kexAB 1000.0
+kexAB 3000.0
 kexAC 0.0
 kexBC 0.0
 R1 2.0
@@ -88,7 +88,7 @@ SLOFF
 #Data RealData.csv
 Error 0.0
 MCNum 500
-off 400 -3000 0 5
+on 100 3500 10
 
 ##################################################################################
 # "Decay" block defines how each R1rho value is simulated by simulating decaying

@@ -89,7 +89,7 @@ class SimFit:
           "overlay" : "symbol", # Data overlay with simulation type
           "otype" : "sim", # Data type to overlay: real or sim
           "oline" : ["-", 1.5], # Line type
-          "osymbol" : ["o", 13], # Symbol type          
+          "osymbol" : ["o", 13], # Symbol type
           "r1p_x" : [None, None], # Lower, upper limits of x-dimension R1p
           "r1p_y" : [None, None], # Lower, upper limits of y-dimension R1p
           "r2eff_x" : [None, None], # Lower, upper limits of x-dimension R2eff
@@ -376,13 +376,13 @@ class SimFit:
             bme.HandleErrors(True, "\nR1, R1b, or R1c has not been defined.\n")
         if (self.fitpars['r2'] is None or self.fitpars['r2b'] is None
             or self.fitpars['r2c'] is None):
-            bme.HandleErrors(True, "\nR2, R2b, or R2c has not been defined.\n") 
+            bme.HandleErrors(True, "\nR2, R2b, or R2c has not been defined.\n")
         if self.fitpars['lf'] is None:
             bme.HandleErrors(True, "\nLarmor frequency has not been defined.\n")
 
     #########################################################################
     # prPlotInp - Parse plot input block from raw input and parses it
-    #           Maps values to local plotting parameters for 
+    #           Maps values to local plotting parameters for
     #           axes limits and font sizes
     #  Input:
     #   - Plot input block from parsed raw input file (list of lists)
@@ -395,7 +395,7 @@ class SimFit:
                 # var name
                 v = i[0].lower()
                 # Check for numerical values if not line type or symbol
-                if (v != "line" and v != "symbol" 
+                if (v != "line" and v != "symbol"
                     and v != "oline" and v != "osymbol"):
                     if i[1].lower() != "none":
                         try:
@@ -424,7 +424,7 @@ class SimFit:
                 self.pltvar[i[0].lower()] = i[1]
             # Overlay data type
             elif i[0].lower() == "otype" and len(i) == 2:
-                if i[1].lower() == "real" or i[1].lower() == "sim": 
+                if i[1].lower() == "real" or i[1].lower() == "sim":
                     self.pltvar[i[0].lower()] = i[1]
                 else:
                     self.pltvar[i[0].lower()] = "real"
@@ -458,7 +458,7 @@ class SimFit:
     #  Input:
     #   - SL/Offset block from parsed raw input file (list of lists)
     #  Result:
-    #   - Reads and/or generates SLPs/offsets to be assigned to 
+    #   - Reads and/or generates SLPs/offsets to be assigned to
     #     self.slon - onres numpy array
     #     self.sloff - offres numpy array
     #########################################################################
@@ -596,7 +596,7 @@ class SimFit:
                 A, R1p, R1p_err = n[6], n[2], n[3]
                 of, sl = n[0], n[1]
                 # -- Define figure -- #
-                fig = plt.figure()
+                fig = plt.figure(figsize=(12,8))
                 plt.errorbar(d[:,14], d[:,0], yerr=d[:,1], fmt='o')
                 # # Simulate x-values for plotting trendline
                 # if 101 < len(d[:,14]):
@@ -739,7 +739,7 @@ class SimFit:
                         xd = n[:,0]/1e3
                         # Set ydata
                         yd = n[:,2] # R1rho
-                        # Set yerr 
+                        # Set yerr
                         ye = n[:,3] # R1rho_err
                     else:
                         print "Data type specified to overlay does not exist."
@@ -814,7 +814,7 @@ class SimFit:
             if self.pltvar['r1p_x'][1] is None:
                 xmax = self.R1pV[:,0].max() * 1.05
             else:
-                xmax = self.pltvar['r1p_x'][1]    
+                xmax = self.pltvar['r1p_x'][1]
             plt.xlim(xmin/1e3, xmax/1e3)
             # -- Set Y-axes limits -- #
             if self.pltvar['r1p_y'][0] is None:
@@ -824,14 +824,14 @@ class SimFit:
             if self.pltvar['r1p_y'][1] is None:
                 ymax = self.R1pV[:,2].max() * 1.05
             else:
-                ymax = self.pltvar['r1p_y'][1]    
+                ymax = self.pltvar['r1p_y'][1]
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
             # Don't add labels
             if self.pltvar['labels'] == False:
                 plt.xlabel("")
                 plt.ylabel("")
-            else:                    
+            else:
                 plt.tight_layout()
             figp = os.path.join(figp, "sim-R1rho-OffRes.pdf")
             plt.savefig(figp, transparent=True)
@@ -954,7 +954,7 @@ class SimFit:
                         xd = n[:,0]/1e3
                         # Set ydata
                         yd = n[:,4] # R2eff
-                        # Set yerr 
+                        # Set yerr
                         ye = n[:,5] # R2eff_err
                     else:
                         print "Data type specified to overlay does not exist."
@@ -1030,7 +1030,7 @@ class SimFit:
             if self.pltvar['r2eff_x'][1] is None:
                 xmax = self.R1pV[:,0].max() * 1.05
             else:
-                xmax = self.pltvar['r2eff_x'][1]    
+                xmax = self.pltvar['r2eff_x'][1]
             plt.xlim(xmin/1e3, xmax/1e3)
             # -- Set Y-axes limits -- #
             if self.pltvar['r2eff_y'][0] is None:
@@ -1040,14 +1040,14 @@ class SimFit:
             if self.pltvar['r2eff_y'][1] is None:
                 ymax = self.R1pV[:,4].max() * 1.05
             else:
-                ymax = self.pltvar['r2eff_y'][1]    
+                ymax = self.pltvar['r2eff_y'][1]
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
             # Don't add labels
             if self.pltvar['labels'] == False:
                 plt.xlabel("")
                 plt.ylabel("")
-            else:                    
+            else:
                 plt.tight_layout()
             figp = os.path.join(figp, "sim-R2eff.pdf")
             # figp = os.path.join(figp, "sim-R2eff.png")
@@ -1138,7 +1138,7 @@ class SimFit:
                 except ValueError:
                     xmax = 3500.
             else:
-                xmax = self.pltvar['on_x'][1]    
+                xmax = self.pltvar['on_x'][1]
             plt.xlim(xmin/1e3, xmax/1e3)
             # -- Set Y-axes limits -- #
             if self.pltvar['on_y'][0] is None:
@@ -1151,7 +1151,7 @@ class SimFit:
                 except ValueError:
                     ymax = 100.
             else:
-                ymax = self.pltvar['on_y'][1]    
+                ymax = self.pltvar['on_y'][1]
             plt.ylim(ymin, ymax)
             # -- Write out figure -- #
             figp = os.path.join(figp, "sim-R1p-OnRes.pdf")
@@ -1159,7 +1159,7 @@ class SimFit:
             if self.pltvar['labels'] == False:
                 plt.xlabel("")
                 plt.ylabel("")
-            else:                    
+            else:
                 plt.tight_layout()
             plt.savefig(figp, transparent=True)
             plt.close(fig)
@@ -1177,21 +1177,20 @@ class SimFit:
         # If magvec does not exist internally, read externally
         if external is not None:
             if os.path.exists(external):
-                self.magVecs = np.genfromtxt(external, delimiter=',', skip_header=1)
+                df = pd.read_csv(external)
+                self.magVecs = df[["Mxa", "Mya", "Mza",
+                                   "Mxb", "Myb", "Mzb",
+                                   "Mxc", "Myc", "Mzc"]].as_matrix()
+        Ma = self.magVecs[:,0:3]
+        Mb = self.magVecs[:,3:6]
+        Mc = self.magVecs[:,6:]
 
-        Ma = self.magVecs[:,5:8]
-        Mb = self.magVecs[:,8:11]
-        Mc = self.magVecs[:,11:14]
-        Ma = np.array(self.normalize(Ma))
         # Don't mess with boring zero arrays
         if np.count_nonzero(Mb[0]) == 0:
             Mb = np.zeros(Mb.shape)
-        else:
-            Mb = np.array(self.normalize(Mb))
+
         if np.count_nonzero(Mc[0]) == 0:
             Mc = np.zeros(Mc.shape)
-        else:
-            Mc = np.array(self.normalize(Mc))
 
         # Plot N array of 3D vectors
         self.VecAnimate3D(np.array([Ma, Mb, Mc]))
