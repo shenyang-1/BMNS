@@ -112,12 +112,11 @@ def AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag = "
 
     # Simplistic scenario where in 3-state exchange, dominant population of
     #  excited state will dominate how magnetization is aligned.
-    # Does not treat separate aligments
+    # Does not treat separate aligment
     if pB > pC:
         exchReg = kexAB / absolute(dwB)
     else:
         exchReg = kexAC / absolute(dwC)
-
     ######################################
     #### AUTO Magnetization Alignment ####
     ######################################
@@ -447,15 +446,15 @@ def BMFitFunc(Params,w1,wrf,lf,time,AlignMag="auto",R2eff_flag=0,kR1p=None):
                             AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
 
     #Calculate initial magnetization
-    Ma = pA*lOmegaA # ES1
-    Mb = pB*lOmegaB # GS
+    Ma = pA*lOmegaA # GS
+    Mb = pB*lOmegaB # ES1
     Mc = pC*lOmegaC # ES2
 
     # Magnetization matrix
     Ms = MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
                    w1, R1, R2, R1b, R1c, R2b, R2c)
 
-    # Initial magnetization of GS (Mb), ES1 (Ma), ES2 (Mc)
+    # Initial magnetization of GS (Ma), ES1 (Mb), ES2 (Mc)
     M0 = array([Ma[0],Mb[0],Mc[0],Ma[1],Mb[1],Mc[1],Ma[2],Mb[2],Mc[2]], float64)
 
     #################################################################
@@ -568,15 +567,15 @@ def BMFitFunc_ints(Params, w1, wrf, lf, time, AlignMag="auto"):
                             AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
 
     #Calculate initial magnetization
-    Ma = pA*lOmegaA # ES1
-    Mb = pB*lOmegaB # GS
+    Ma = pA*lOmegaA # GS
+    Mb = pB*lOmegaB # ES1
     Mc = pC*lOmegaC # ES2
 
     # Magnetization matrix
     Ms = MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
                    w1, R1, R2, R1b, R1c, R2b, R2c)
 
-    # Initial magnetization of GS (Mb), ES1 (Ma), ES2 (Mc)
+    # Initial magnetization of GS (Ma), ES1 (Mb), ES2 (Mc)
     M0 = array([Ma[0],Mb[0],Mc[0],Ma[1],Mb[1],Mc[1],Ma[2],Mb[2],Mc[2]], float64)
 
     #################################################################
@@ -657,11 +656,6 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
     R2,R2b,R2c = ParD['r2'], ParD['r2b'], ParD['r2c']
     lf, AlignMag = ParD['lf'], ParD['alignmag']
     pA = 1. - (pB + pC)
-    # print pB, pC
-    # print kexAB, kexAC, kexBC
-    # print dwB, dwC
-    # print R1,R1b,R1c
-    # print R2,R2b,R2c
 
     ################################
     ##### Pre-run Calculations #####
@@ -688,17 +682,16 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
     lOmegaA, lOmegaB, lOmegaC, uOmega1, uOmega2, uOmega3, uOmegaAvg,\
     delta1, delta2, delta3, deltaAvg, theta1, theta2, theta3, thetaAvg = \
                             AlignMagVec(w1, wrf, pA, pB, pC, dwB, dwC, kexAB, kexAC, kexBC, AlignMag)
-
     #Calculate initial magnetization
-    Ma = pA*lOmegaA # ES1
-    Mb = pB*lOmegaB # GS
+    Ma = pA*lOmegaA # GS
+    Mb = pB*lOmegaB # ES1
     Mc = pC*lOmegaC # ES2
 
     # Magnetization matrix
     Ms = MatrixBM3(k12,k21,k13,k31,k23,k32,delta1,delta2,delta3,
                    w1, R1, R2, R1b, R1c, R2b, R2c)
 
-    # Initial magnetization of GS (Mb), ES1 (Ma), ES2 (Mc)
+    # Initial magnetization of GS (Ma), ES1 (Mb), ES2 (Mc)
     M0 = array([Ma[0],Mb[0],Mc[0],Ma[1],Mb[1],Mc[1],Ma[2],Mb[2],Mc[2]], float64)
 
     #################################################################
@@ -711,14 +704,14 @@ def BMSim(ParD, wrf, w1, time, dec_err=0.0, dec_mc=500, rho_err=0.0, rho_mc=500)
         # Col0 = Peff - mag projected along average
         # Col1 = Peff_err, if any
         # Col2,3,4 = PeffA,B,C - Projected along respective states
-        # Col5,6,7 = Mxa, Mya, Mza - x-comps of indv states
+        # Col5,6,7 = Mxa, Mya, Mza
         # Col8,9,10 = Mxb, Myb, Mzb
         # Col11,12,13 = Mxc, Myc, Mzc
         # Col14 = time
         magVecs = asarray([SimMagVecs(x,M0,Ms,lOmegaA,lOmegaB,lOmegaC,w1,wrf) for x in time])
         # Append time to vectors
         magVecs = append(magVecs, time[:,None], axis=1)
-
+        
         ## -- Monoexp Decay Error Corruption -- ##
         if dec_err != 0.0:
             # MC error number

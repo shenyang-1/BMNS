@@ -988,7 +988,11 @@ class SimFit:
                                     fmt=self.pltvar['osymbol'][0],
                                     markersize=self.pltvar['osymbol'][1],
                                     label=lbl, c=cdict[int(slp)])
-
+            # Plot vertical line for ES1 location 
+            plt.axvline(x = -1 * self.fitpars['dwb'] * self.fitpars['lf'] / 1000, linewidth = 2, zorder = 0, color = 'C0')
+            # Plot vetical line for ES2 location
+            if self.fitpars['dwc'] != 0:
+                plt.axvline(x = -1 * self.fitpars['dwc'] * self.fitpars['lf'] / 1000, linewidth = 2, zorder = 0, color = 'C2')
             ##### Start decorating plot #####
             # -- Set legends -- #
             # Get rid of legend error bars
