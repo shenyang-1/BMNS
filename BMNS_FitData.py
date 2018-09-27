@@ -396,7 +396,11 @@ class GraphFit:
                 ax.set_ylim(ob.ymin, ob.ymax)
             ax.set_xlabel(r'$\Omega \,2\pi^{-1}\,{(kHz)}$', size=xlblfs)
             ax.set_ylabel(r'$R_2+R_{ex}\,(s^{-1})$', size=ylblfs)
-
+            # Plot vertical line for ES1 location
+            plt.axvline(x = -1 * dwB * ob.lf / 1000, linewidth = 2, zorder = 0, color = 'C0')
+            # Plot vertical line for ES2 location
+            if dwC != 0:
+                plt.axvline(x = -1 * dwC * ob.lf / 1000, linewidth = 2, zorder = 0, color = 'C2')
             # -- Set legends -- #
             # Get rid of legend error bars
             handles, labels = ax.get_legend_handles_labels()
