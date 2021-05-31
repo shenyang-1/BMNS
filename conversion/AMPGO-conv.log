@@ -1,0 +1,8 @@
+--- AMPGO.py	(original)
++++ AMPGO.py	(refactored)
+@@ -1,4 +1,4 @@
+-from __future__ import print_function
++
+ 
+ import numpy
+ 

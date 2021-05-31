@@ -1,0 +1,126 @@
+--- BMNS.py	(original)
++++ BMNS.py	(refactored)
+@@ -385,11 +385,11 @@
+             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+             for lp in range(gl.FitLoops):
+                 if gl.FitType == "global":
+-                    print "~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+-                    print "  (Adaptive Memory Programming for Global Optimums)  "
++                    print("~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
++                    print("  (Adaptive Memory Programming for Global Optimums)  ")
+                     if mcerr == True:
+-                        print '''   * Monte-Carlo error flagged but will not
+-                          be estimated with global fits *'''
++                        print('''   * Monte-Carlo error flagged but will not
++                          be estimated with global fits *''')
+                     # Randomize initial guess, if flagged
+                     if gl.rndStart == True:
+                         tP0 = gl.RandomgP0()
+@@ -419,7 +419,7 @@
+                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
+                         grph.WriteGraph(ob, outGlobal, lp+1, ob.time, "global")
+ 
+-                    print "     Polish Global Fit with Levenberg-Marquardt"
++                    print("     Polish Global Fit with Levenberg-Marquardt")
+ 
+                     # !! For least_squares function/Lev-Mar !! #
+                     fitted = least_squares(residual, fitted[0], bounds = gl.gBnds, max_nfev=10000)
+@@ -454,8 +454,8 @@
+                                       gl.freePars, chisq, redChiSq, lp+1, "polish")
+                 # Local Fit
+                 elif gl.FitType == "local":
+-                    print "~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+-                    print "                 (Levenberg-Marquardt)  "
++                    print("~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
++                    print("                 (Levenberg-Marquardt)  ")
+ 
+                     # Randomize initial guess, if flagged
+                     if gl.rndStart == True:
+@@ -531,8 +531,8 @@
+                                       gl.freePars, chisq, redChiSq, lp+1, "local")
+                 # Fit intensity values directly using local optimization
+                 elif gl.FitType == "localint":
+-                    print "~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
+-                    print "                     (Levenberg-Marquardt)  "
++                    print("~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
++                    print("                     (Levenberg-Marquardt)  ")
+ 
+                     # Randomize initial guess, if flagged
+                     if gl.rndStart == True:
+@@ -658,7 +658,7 @@
+                     # Define the Monte-Carlo random corrupt look
+                     def Brute_loop(idx):
+                         gf = gl.brutegP0[idx]
+-                        print "    Iteration %s of %s" % (idx+1, len(gl.brutegP0))
++                        print("    Iteration %s of %s" % (idx+1, len(gl.brutegP0)))
+                         allfits = {}
+                         # Don't let it fit, just 1 iteration
+                         fitted = least_squares(residual, gf, bounds = gl.gBnds, max_nfev=1)
+@@ -694,16 +694,16 @@
+                             sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
+                                           gl.freePars, chisq, redChiSq, idx+1, "local", matrices=False)
+                         return allfits
+-                    print "--- BRUTE FORCE PARAMETER SPACE ---"
++                    print("--- BRUTE FORCE PARAMETER SPACE ---")
+                     # Keep track of reduced chi-squares mapped to P0 array
+                     # Split brute fitting over N-cores
+-                    allfits = parmap(Brute_loop, range(len(gl.brutegP0)))
++                    allfits = parmap(Brute_loop, list(range(len(gl.brutegP0))))
+                     allfits = dict(allfits[0])
+ 
+                     # Start the last fit, from the best fit
+-                    print "\n    Lowest red. chi-square found. Minimizing within bounds.    "
++                    print("\n    Lowest red. chi-square found. Minimizing within bounds.    ")
+                     lastval = len(gl.brutegP0) + 1
+-                    tP0 = allfits[min(allfits.iterkeys())]
++                    tP0 = allfits[min(allfits.keys())]
+                     # Least_squares / Lev-Mar fit
+                     fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000)
+                     # fitted = least_squares(residual, tP0, max_nfev=10000)
+@@ -730,11 +730,11 @@
+                                       gl.freePars, chisq, redChiSq, lastval, "local")
+ 
+                 else:
+-                    print "Fit Type not declared properly (global or local)"
++                    print("Fit Type not declared properly (global or local)")
+ 
+         else:
+-            print "----- Cannot Run Fit Because of Errors -----"
+-            print retMessage
++            print("----- Cannot Run Fit Because of Errors -----")
++            print(retMessage)
+ 
+     #########################################################################
+     # Bloch-McConnell 2-/3-state R1rho Simulation
+@@ -829,12 +829,12 @@
+             if os.path.isfile(os.path.join(curDir, i)):
+                 paths.append(os.path.join(curDir, i))
+             else:
+-                print "Model ( %s ) does not exist." % i
++                print("Model ( %s ) does not exist." % i)
+         # Make sure at least 2 models to compare
+         if len(paths) >= 2:
+             sf.CompareModels(paths)
+         else:
+-            print "Not enough models to compare."
++            print("Not enough models to compare.")
+ 
+     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     # Calculate thermodynamic parameters from fit file
+@@ -853,12 +853,12 @@
+             # Assume spectrometer variance of +/- 0.2K in parameter
+             te = ufloat(sys.argv[3], 0.2)
+             if te.n < 100.:
+-                print "Temperature seems to be in centigrade instead of Kelvin"
+-                print "  Converting from %sC to %sK" % (te.n, te.n + 273.15)
++                print("Temperature seems to be in centigrade instead of Kelvin")
++                print("  Converting from %sC to %sK" % (te.n, te.n + 273.15))
+                 te = ufloat(te.n + 273.15, 0.2)
+         except ValueError:
+-            print "Invalid temperature given (%s)" % sys.argv[3]
+-            print "  Setting temperature to 298K"
++            print("Invalid temperature given (%s)" % sys.argv[3])
++            print("  Setting temperature to 298K")
+ 
+         # Data to append thermo parameters to and write out
+         outData = []

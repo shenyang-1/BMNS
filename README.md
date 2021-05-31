@@ -26,12 +26,11 @@ This program is designed to fit and simulate experimental nuclear magnetic reson
 
 ## Installation of BMNS in a Conda environment
 It is recommended that you use an Anaconda environment to run BMNS.
-The *conda_bmns.sh* bash script will install the required Python dependencies.
 
 ```bash
-bash conda_bmns.sh bmns
-source activate bmns
-```
+conda env create -f bmns.yml
+
+conda activate bmns```
 
 ## Running examples
 Examples for how to fit and simulate R1rho data can be found within the *Examples* folder.
@@ -40,6 +39,5 @@ Examples for how to fit and simulate R1rho data can be found within the *Example
 python BMNS.py -fit Examples/Fit-Indv-2State/Fit-InputPars.txt Examples/Fit-Indv-2State/ Output_2state/
 ```
 
-## ToDo
- * Finish writing function docstrings
- * Port to Python 3
+## Updates
+Updated to Python 3.9.x, added conda config YAML for install.

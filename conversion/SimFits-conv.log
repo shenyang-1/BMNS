@@ -1,0 +1,53 @@
+--- SimFits.py	(original)
++++ SimFits.py	(refactored)
+@@ -163,8 +163,8 @@
+     def writeSimPars(self, outp):
+         outPars = os.path.join(outp, "sim-params.csv")
+         FILE = open(outPars, "wb")
+-        FILE.write(",".join(self.fitpars.keys()) + "\n")
+-        FILE.write(",".join([str(self.fitpars[x]) for x in self.fitpars.keys()]) + "\n")
++        FILE.write(",".join(list(self.fitpars.keys())) + "\n")
++        FILE.write(",".join([str(self.fitpars[x]) for x in list(self.fitpars.keys())]) + "\n")
+         FILE.close()
+ 
+     #########################################################################
+@@ -304,7 +304,7 @@
+                 # Reset flag to no if not properly defined
+                 if self.plotdec != "no" and self.plotdec != "yes":
+                     self.plotdec = "no"
+-                    print "\nFlag to plot decaying intensities not properly defined."
++                    print("\nFlag to plot decaying intensities not properly defined.")
+             # Generate vdlist from lower/upper bounds
+             elif i[0].lower() == "vdlist":
+                 if len(i) == 4:
+@@ -348,7 +348,7 @@
+                         for v in set(self.fitpars.keys()) & set(bf.columns):
+                             self.fitpars[v] = bf[v][0]
+ 
+-            elif i[0].lower() in self.fitpars.keys() and len(i) == 2:
++            elif i[0].lower() in list(self.fitpars.keys()) and len(i) == 2:
+                 v = i[0].lower()
+                 # Check to make sure parameter is a value
+                 #  Assign if it is, except alignmag
+@@ -742,8 +742,8 @@
+                         # Set yerr
+                         ye = n[:,3] # R1rho_err
+                     else:
+-                        print "Data type specified to overlay does not exist."
+-                        print "Falling back to existing data."
++                        print("Data type specified to overlay does not exist.")
++                        print("Falling back to existing data.")
+                         # Set offsets in kHz increments
+                         xd = n[:,0]/1e3
+                         # Set ydata
+@@ -957,8 +957,8 @@
+                         # Set yerr
+                         ye = n[:,5] # R2eff_err
+                     else:
+-                        print "Data type specified to overlay does not exist."
+-                        print "Falling back to existing data."
++                        print("Data type specified to overlay does not exist.")
++                        print("Falling back to existing data.")
+                         # Set offsets in kHz increments
+                         xd = n[:,0]/1e3
+                         # Set ydata
