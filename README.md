@@ -30,7 +30,8 @@ It is recommended that you use an Anaconda environment to run BMNS.
 ```bash
 conda env create -f bmns.yml
 
-conda activate bmns```
+conda activate bmns
+```
 
 ## Running examples
 Examples for how to fit and simulate R1rho data can be found within the *Examples* folder.
