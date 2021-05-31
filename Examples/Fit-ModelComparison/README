@@ -1,2 +1,6 @@
 Run:
+bm -fit 1-run1_Model1.txt . 1-Model1-run1_AutoAlign/
+bm -fit 2-run1_Model2.txt . 2-Model2-run1_AvgAlign/
+bm -fit 3-run1_Model3.txt . 3-Model3-run1_FixedKex/
+
 bm -compare 1-Model1-run1_AutoAlign/LocalStats_hpTT-GTG_G6-C1p.csv 2-Model2-run1_AvgAlign/LocalStats_hpTT-GTG_G6-C1p.csv 3-Model3-run1_FixedKex/LocalStats_hpTT-GTG_G6-C1p.csv

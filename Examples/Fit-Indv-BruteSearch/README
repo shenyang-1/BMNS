@@ -1,9 +1,9 @@
-Iterates over pB in log space from 1e-3 to 1e-0 in 8 log increments
-- pB$ 0.05 1e-3 1e-0 8
+Iterates over pB in log space from 1e-2 to 1e-0 in 16 log increments
+- pB$ 0.05 1e-2 1e0 8
 Iterates over kexAB in linear space from 1 to 8 in 1ppm linear increments
-- dwB@ 3.0 1 8 8
+- dwB@ 3.0 1 8 16
 
-This is 8*8 combinations.
+This is 16*16 combinations.
 
 Finds combination of pB and dwB with lowest red. chi-2 and begins a fit
 from there to minimize all free parameters from there.
@@ -12,4 +12,4 @@ To brute-force fit, run:
 bm -fit Fit-InputPars.txt . Test-Indv-BruteSearch/
 
 To generate chi^2 contour plots:
-bm -plotbrute Output-Indv-BruteSearch/LocalFits_dG6C1p-mc.csv pb dwb
+bm -plotbrute Test-Indv-BruteSearch/LocalFits_dG6C1p-mc.csv pb dwb

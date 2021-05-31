@@ -1,0 +1,153 @@
+--- Errors.py	(original)
++++ Errors.py	(refactored)
+@@ -30,21 +30,21 @@
+     # Now check that the fit file actually exist
+     else:
+         if not os.path.isfile(os.path.join(curDir, sys.argv[2])):
+-            print '''
+-  ERROR: Input fit.csv file does not exist. (%s)\n''' % os.path.join(curDir, sys.argv[2])
++            print('''
++  ERROR: Input fit.csv file does not exist. (%s)\n''' % os.path.join(curDir, sys.argv[2]))
+             exitBool = True
+         if not os.path.isfile(os.path.join(curDir, sys.argv[3])):
+-            print '''
+-  ERROR: Input R1rho data .csv file does not exist. (%s)\n''' % os.path.join(curDir, sys.argv[3])
++            print('''
++  ERROR: Input R1rho data .csv file does not exist. (%s)\n''' % os.path.join(curDir, sys.argv[3]))
+             exitBool = True
+         # Check to make sure output directory is not a file
+         if os.path.isfile(os.path.join(curDir, sys.argv[4])):
+-            print '''
+-  ERROR: Output path given has been defined as a file. (%s)\n''' % os.path.join(curDir, sys.argv[4])
++            print('''
++  ERROR: Output path given has been defined as a file. (%s)\n''' % os.path.join(curDir, sys.argv[4]))
+             exitBool = True
+     # Terminate program if needed.
+     if exitBool == True:
+-        print tstr
++        print(tstr)
+         sys.exit(-1)
+ 
+ #########################################################################
+@@ -56,7 +56,7 @@
+     # Check if enough arguments were passed through command line
+     #   to be able to run the program.
+     if 2 <= argc <= 3:
+-        print '''
++        print('''
+   ERROR: Too few arguments given to command line.
+         Use -h for help.
+   ------------------------------------------------
+@@ -69,7 +69,7 @@
+          If data file is .tab, assumes Offset<>SLP swap, and removes first column (Folder numbers)
+          If data file has a header, removes header and first column (assumed to be Folder numbers)
+   arg4 Output directory for fit data (Optional)
+-  ------------------------------------------------'''
++  ------------------------------------------------''')
+         exitBool = True
+ 
+     # If enough command line args were given, check that:
+@@ -77,16 +77,16 @@
+     #   2. Data directory exists
+     else:
+         if not os.path.isfile(os.path.join(curDir, sys.argv[2])):
+-            print '''
+-  ERROR: Input Parameter text file does not exist.'''
++            print('''
++  ERROR: Input Parameter text file does not exist.''')
+             exitBool = True
+         if not os.path.isdir(os.path.join(curDir, sys.argv[3])):
+-            print '''
+-  ERROR: Input Data directory does not exist.'''
++            print('''
++  ERROR: Input Data directory does not exist.''')
+             exitBool = True
+     # Determine if program needs to exit, then do so as needed.
+     if exitBool == True:
+-        print ""
++        print("")
+         sys.exit(-1)
+ #########################################################################
+ # Handle Given Errors and exit program
+@@ -95,15 +95,15 @@
+ #########################################################################
+ def HandleErrors(exitBool, message):
+     if exitBool == True:
+-        print message
++        print(message)
+         sys.exit(-1)
+ 
+ #########################################################################
+ # Default help menu #
+ #########################################################################
+ def help():
+-    print "Usage is as follows:"
+-    print '''
++    print("Usage is as follows:")
++    print('''
+   ######################################################
+   #####  -fit : R1rho BM 2-/2-state Fitting Func.  #####
+   ######################################################
+@@ -121,9 +121,9 @@
+          If data file has a header, removes header and first column (assumed to be Folder numbers)
+    arg4 Output directory for fit data (Optional)
+ 
+-   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder]\n'''
++   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder]\n''')
+ 
+-    print '''
++    print('''
+   ###########################################################################
+   #####  -fitmc : R1rho BM 2-/2-state Fitting with MC Error Estimation  #####
+   ###########################################################################
+@@ -142,9 +142,9 @@
+    arg4 Output directory for fit data (Optional)
+    arg5 Monte-Carlo Iteration number (optional)
+ 
+-   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder] 100\n'''
++   >BMNS.py -fit [Parameter Text File] [Folder with data] [Output folder] 100\n''')
+ 
+-    print '''
++    print('''
+   ####################################################################
+   #####   -thermo : Calculate free energies/indv rate constants  #####
+   ####################################################################
+@@ -154,9 +154,9 @@
+   Errors in calculations are propogated by linear error propogation theory
+     using the Uncertainties Python package.
+ 
+-  >BMNS.py -thermo [fit.csv] [Temp (C or K)]\n'''
++  >BMNS.py -thermo [fit.csv] [Temp (C or K)]\n''')
+ 
+-    print '''
++    print('''
+   ####################################################################
+   #####   -compare : Compares statistics .csv files to one another ###
+   ####################################################################
+@@ -167,21 +167,21 @@
+   Output is terminal text that describes the best model based on AIC/BIC
+   values and relative weights to one another
+ 
+-  >BMNS.py -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]\n'''
++  >BMNS.py -compare [LocalStats_1.csv LocalStats_2.csv (LocalStats_3.csv...)...]\n''')
+ 
+-    print '''
++    print('''
+   ######################################################
+   #####   -tab2csv : Convert tab file to csv file  #####
+   ######################################################
+   Takes in a tab file and converts to csv
+ 
+-  >BMNS.py -tab2csv [tab file]\n'''
++  >BMNS.py -tab2csv [tab file]\n''')
+ 
+-    print '''
++    print('''
+   ######################################################
+   ### -genpar : Generates a parameter txt file       ###
+   ######################################################
+   Uses MC/Bootstrap approach to generate error in
+   fitted parameters in given .csv file.
+ 
+-  >BMNS.py -genpar [output folder] [Name, optional]\n'''
++  >BMNS.py -genpar [output folder] [Name, optional]\n''')

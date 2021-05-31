@@ -1,0 +1,43 @@
+--- Stats.py	(original)
++++ Stats.py	(refactored)
+@@ -62,8 +62,8 @@
+             bics.append(i.BIC[0])
+ 
+     else:
+-        print "!! ERROR: Models do not contain same length data !!"
+-        print "   All comparative models must use the same data."
++        print("!! ERROR: Models do not contain same length data !!")
++        print("   All comparative models must use the same data.")
+     aics, bics = asarray(aics), asarray(bics)
+     outStats = []
+     nIC_Test(aics, outStats, mnames, name="AIC")
+@@ -96,24 +96,24 @@
+     outStr ='''o Model #%i is %s.
+   - %s = %s
+   - Model probability = %s'''
+-    print "\n------ %s Tests ------" % name
++    print("\n------ %s Tests ------" % name)
+     for n,m,d,mdl in zip(nics, nicwts, dnics, models):
+         if m[1] == nicwts[:,1].max():
+             flag = "FAVORED"
+         else:
+             flag = "DISFAVORED"
+-        print outStr % (m[0], flag, name, n, m[1])
++        print(outStr % (m[0], flag, name, n, m[1]))
+         # Put statistics in to list that will be written out
+         appStr = "%s,%s,%s,%s,%s,%s\n" % (m[0], mdl, name, n, d, m[1])
+         outStats.append(appStr)
+ 
+ def F_test(RSS1, RSS2, df1, df2):
+-    print "\n------ F Test ------"
++    print("\n------ F Test ------")
+     if df1 == df2:
+-        print "  * F-test cannot be performed because degrees of freedom of both models are the same."
++        print("  * F-test cannot be performed because degrees of freedom of both models are the same.")
+     else:
+         Fv = ((RSS1/RSS2) / (df1/df2)) / (RSS2/df2)
+-        print "  *", Fv
++        print("  *", Fv)
+ #---------------------------#---------------------------#
+ # 'WriteStats' takes in a 'least_squares' fit, global
+ #   object, fitnum, and fit-type flag and writes out

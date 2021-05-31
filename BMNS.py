@@ -1,23 +1,17 @@
-#########################################################################
-# Bloch-McConnell 2-/3-state Fitting Program
-#  Beta version.
-#  Isaac Kimsey 02-11-2016
-#########################################################################
-
 # General libraries
 import os, sys
 import subprocess
 import datetime
 import pandas as pd
 ### Local BMNS Libraries ###
-import BMNS_FitData as fd
-import BMNS_SimR1p as sim
-import BMNS_SimFits as simf
-import BMNS_Errors as bme
-import BMNS_AMPGO as ampgo  # Global fitting
-import BMNS_MathFuncs as mf
-import BMNS_Stats as sf
-import BMNS_PlotMisc as pm
+import src.FitData as fd
+import src.SimR1p as sim
+import src.SimFits as simf
+import src.Errors as bme
+import src.AMPGO as ampgo  # Global fitting
+import src.MathFuncs as mf
+import src.Stats as sf
+import src.PlotMisc as pm
 ### Direct numpy imports ###
 from numpy import absolute, array, asarray
 from numpy import diag
@@ -391,11 +385,11 @@ def Main():
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             for lp in range(gl.FitLoops):
                 if gl.FitType == "global":
-                    print "~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
-                    print "  (Adaptive Memory Programming for Global Optimums)  "
+                    print("~~~~~~~~~~~~~~~~~ GLOBAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
+                    print("  (Adaptive Memory Programming for Global Optimums)  ")
                     if mcerr == True:
-                        print '''   * Monte-Carlo error flagged but will not
-                          be estimated with global fits *'''
+                        print('''   * Monte-Carlo error flagged but will not
+                          be estimated with global fits *''')
                     # Randomize initial guess, if flagged
                     if gl.rndStart == True:
                         tP0 = gl.RandomgP0()
@@ -425,7 +419,7 @@ def Main():
                         # Graph fitted data with trend-lines, and also export R1rho/R2eff values
                         grph.WriteGraph(ob, outGlobal, lp+1, ob.time, "global")
 
-                    print "     Polish Global Fit with Levenberg-Marquardt"
+                    print("     Polish Global Fit with Levenberg-Marquardt")
 
                     # !! For least_squares function/Lev-Mar !! #
                     fitted = least_squares(residual, fitted[0], bounds = gl.gBnds, max_nfev=10000)
@@ -460,8 +454,8 @@ def Main():
                                       gl.freePars, chisq, redChiSq, lp+1, "polish")
                 # Local Fit
                 elif gl.FitType == "local":
-                    print "~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
-                    print "                 (Levenberg-Marquardt)  "
+                    print("~~~~~~~~~~~~~~~~~ LOCAL FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
+                    print("                 (Levenberg-Marquardt)  ")
 
                     # Randomize initial guess, if flagged
                     if gl.rndStart == True:
@@ -537,8 +531,8 @@ def Main():
                                       gl.freePars, chisq, redChiSq, lp+1, "local")
                 # Fit intensity values directly using local optimization
                 elif gl.FitType == "localint":
-                    print "~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1)
-                    print "                     (Levenberg-Marquardt)  "
+                    print("~~~~~~~~~~~~~~~~~ LOCAL INTENSITY FIT START (%s) ~~~~~~~~~~~~~~~~~" % str(lp+1))
+                    print("                     (Levenberg-Marquardt)  ")
 
                     # Randomize initial guess, if flagged
                     if gl.rndStart == True:
@@ -664,7 +658,7 @@ def Main():
                     # Define the Monte-Carlo random corrupt look
                     def Brute_loop(idx):
                         gf = gl.brutegP0[idx]
-                        print "    Iteration %s of %s" % (idx+1, len(gl.brutegP0))
+                        print("    Iteration %s of %s" % (idx+1, len(gl.brutegP0)))
                         allfits = {}
                         # Don't let it fit, just 1 iteration
                         fitted = least_squares(residual, gf, bounds = gl.gBnds, max_nfev=1)
@@ -700,16 +694,16 @@ def Main():
                             sf.WriteStats(outPath, lstatsP, fitted, ob, gl.dof, gl.dataSize,
                                           gl.freePars, chisq, redChiSq, idx+1, "local", matrices=False)
                         return allfits
-                    print "--- BRUTE FORCE PARAMETER SPACE ---"
+                    print("--- BRUTE FORCE PARAMETER SPACE ---")
                     # Keep track of reduced chi-squares mapped to P0 array
                     # Split brute fitting over N-cores
-                    allfits = parmap(Brute_loop, range(len(gl.brutegP0)))
+                    allfits = parmap(Brute_loop, list(range(len(gl.brutegP0))))
                     allfits = dict(allfits[0])
 
                     # Start the last fit, from the best fit
-                    print "\n    Lowest red. chi-square found. Minimizing within bounds.    "
+                    print("\n    Lowest red. chi-square found. Minimizing within bounds.    ")
                     lastval = len(gl.brutegP0) + 1
-                    tP0 = allfits[min(allfits.iterkeys())]
+                    tP0 = allfits[min(allfits.keys())]
                     # Least_squares / Lev-Mar fit
                     fitted = least_squares(residual, tP0, bounds = gl.gBnds, max_nfev=10000)
                     # fitted = least_squares(residual, tP0, max_nfev=10000)
@@ -736,11 +730,11 @@ def Main():
                                       gl.freePars, chisq, redChiSq, lastval, "local")
 
                 else:
-                    print "Fit Type not declared properly (global or local)"
+                    print("Fit Type not declared properly (global or local)")
 
         else:
-            print "----- Cannot Run Fit Because of Errors -----"
-            print retMessage
+            print("----- Cannot Run Fit Because of Errors -----")
+            print(retMessage)
 
     #########################################################################
     # Bloch-McConnell 2-/3-state R1rho Simulation
@@ -811,14 +805,12 @@ def Main():
           and os.path.isfile(os.path.join(curDir, sys.argv[2]))):
         tabPath = os.path.join(curDir, sys.argv[2])
         csvPath = os.path.join(curDir, sys.argv[2].replace(".tab",".csv"))
-        FILE = open(tabPath, "rU")
-        tabData = [x.strip().split() for x in FILE]
-        FILE.close()
+        with open(tabPath, "r") as file:
+            tabData = [x.strip().split() for x in file]
 
-        FILE = open(csvPath, "wb")
-        for line in tabData:
-            FILE.write(",".join(line) + "\n")
-        FILE.close()
+        with open(csvPath, "wb") as file:
+            for line in tabData:
+                file.write(",".join(line) + "\n")
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Compare fitted models using statistics files
@@ -835,12 +827,12 @@ def Main():
             if os.path.isfile(os.path.join(curDir, i)):
                 paths.append(os.path.join(curDir, i))
             else:
-                print "Model ( %s ) does not exist." % i
+                print("Model ( %s ) does not exist." % i)
         # Make sure at least 2 models to compare
         if len(paths) >= 2:
             sf.CompareModels(paths)
         else:
-            print "Not enough models to compare."
+            print("Not enough models to compare.")
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Calculate thermodynamic parameters from fit file
@@ -859,12 +851,12 @@ def Main():
             # Assume spectrometer variance of +/- 0.2K in parameter
             te = ufloat(sys.argv[3], 0.2)
             if te.n < 100.:
-                print "Temperature seems to be in centigrade instead of Kelvin"
-                print "  Converting from %sC to %sK" % (te.n, te.n + 273.15)
+                print("Temperature seems to be in centigrade instead of Kelvin")
+                print("  Converting from %sC to %sK" % (te.n, te.n + 273.15))
                 te = ufloat(te.n + 273.15, 0.2)
         except ValueError:
-            print "Invalid temperature given (%s)" % sys.argv[3]
-            print "  Setting temperature to 298K"
+            print("Invalid temperature given (%s)" % sys.argv[3])
+            print("  Setting temperature to 298K")
 
         # Data to append thermo parameters to and write out
         outData = []
@@ -919,10 +911,9 @@ def Main():
                   + "dG12_err,ddG12_err,ddG21_err,dG13_err,ddG13_err,ddG31_err,ddG23_err,ddG32_err,\n"
                 outData.append(headerStr)
         # Write out fit data
-        FILE = open(outPath, "wb")
-        for line in outData:
-            FILE.write(line)
-        FILE.close()
+        with open(outPath, "w") as file:
+            for line in outData:
+                file.write(line)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Plot brute-force graphs
@@ -1140,9 +1131,8 @@ Labels on
 '''
         outPath = os.path.join(curDir, sys.argv[2])
         makeFolder(outPath)
-        FILE = open(os.path.join(outPath, "BMNS-SimParams.txt"), "wb")
-        FILE.writelines(outstr)
-        FILE.close()
+        with open(os.path.join(outPath, "BMNS-SimParams.txt"), "w") as file:
+            file.writelines(outstr)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generate Example Parameters Text file
@@ -1299,9 +1289,8 @@ R2c! %s
 
         outPath = os.path.join(curDir, sys.argv[2])
         makeFolder(outPath)
-        FILE = open(os.path.join(outPath, "BMNS-Parameters.txt"), "wb")
-        FILE.writelines(outstr)
-        FILE.close()
+        with open(os.path.join(outPath, "BMNS-Parameters.txt"), "w") as file:
+            file.writelines(outstr)
 
     else: bme.help()
 

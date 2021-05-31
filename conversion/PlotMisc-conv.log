@@ -1,0 +1,11 @@
+--- PlotMisc.py	(original)
++++ PlotMisc.py	(refactored)
+@@ -26,7 +26,7 @@
+         # Read fit csv file to pandas dataframe
+         rd = pd.read_csv(fitp)
+         # Set column headers to lowercase
+-        rd.columns = map(str.lower, rd.columns)
++        rd.columns = list(map(str.lower, rd.columns))
+         # headers
+         hdr = list(rd.columns.values)
+         # Check to make sure enough args given

@@ -1,0 +1,20 @@
+--- SimR1p.py	(original)
++++ SimR1p.py	(refactored)
+@@ -358,7 +358,7 @@
+         R1p = (R1 * cos(thetaAvg)**2.) + (R2 * sin(thetaAvg)**2.) + Rex
+ 
+     elif pC != 0. and kexBC != 0.:
+-        print "Cannot yet fit Laguerre 3-state with minor exchange. Try Bloch-McConnell."
++        print("Cannot yet fit Laguerre 3-state with minor exchange. Try Bloch-McConnell.")
+         sys.exit(-1)
+ 
+     # Check to make sure R1rho is not-NaN
+@@ -891,7 +891,7 @@
+     # Handle nan or inf elements of matrix
+     if isnan(A).any() == True or isinf(A).any() == True:
+         A = nan_to_num(A) # How to handle this?
+-        print "NaN or Inf elements in BM Relaxation Matrix. Check parameter bounds or initial starting state."
++        print("NaN or Inf elements in BM Relaxation Matrix. Check parameter bounds or initial starting state.")
+ 
+     # The eigenvalue decomposition.
+     # W are the real and imaginary eigenvalues of the matrix A
